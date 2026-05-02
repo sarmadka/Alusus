@@ -54,7 +54,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -88,141 +88,141 @@ declare i64 @printf(ptr, ...)
 
 define void @"Main.testPtrAndCnt()=>(Void)"() {
 "#block1":
-  %i = alloca i32
-  %pi = alloca ptr
-  %pf = alloca ptr
-  %ppi = alloca ptr
-  store ptr %i, ptr %pi
-  %0 = load ptr, ptr %pi
-  store i32 5, ptr %0
-  %1 = load i32, ptr %i
+  %i = alloca i32, align 4
+  %pi = alloca ptr, align 8
+  %pf = alloca ptr, align 8
+  %ppi = alloca ptr, align 8
+  store ptr %i, ptr %pi, align 8
+  %0 = load ptr, ptr %pi, align 8
+  store i32 5, ptr %0, align 4
+  %1 = load i32, ptr %i, align 4
   %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
-  store i32 10, ptr %i
-  %3 = load ptr, ptr %pi
-  %4 = load i32, ptr %3
+  store i32 10, ptr %i, align 4
+  %3 = load ptr, ptr %pi, align 8
+  %4 = load i32, ptr %3, align 4
   %5 = call i64 (ptr, ...) @printf(ptr @"#anonymous1", i32 %4)
-  %6 = load ptr, ptr %pf
-  %7 = load i32, ptr %i
+  %6 = load ptr, ptr %pf, align 8
+  %7 = load i32, ptr %i, align 4
   %8 = sitofp i32 %7 to float
-  store float %8, ptr %6
-  %9 = load ptr, ptr %pf
-  %10 = load float, ptr %9
+  store float %8, ptr %6, align 4
+  %9 = load ptr, ptr %pf, align 8
+  %10 = load float, ptr %9, align 4
   %11 = fptosi float %10 to i32
-  store i32 %11, ptr %i
-  store ptr %pi, ptr %ppi
-  %12 = load ptr, ptr %ppi
-  %13 = load ptr, ptr %12
-  %14 = load i32, ptr %13
-  store i32 %14, ptr %i
-  store ptr @"!Other.i", ptr %pi
-  %15 = load ptr, ptr @"!Other.pi"
-  store i32 10, ptr %15
+  store i32 %11, ptr %i, align 4
+  store ptr %pi, ptr %ppi, align 8
+  %12 = load ptr, ptr %ppi, align 8
+  %13 = load ptr, ptr %12, align 8
+  %14 = load i32, ptr %13, align 4
+  store i32 %14, ptr %i, align 4
+  store ptr @"!Other.i", ptr %pi, align 8
+  %15 = load ptr, ptr @"!Other.pi", align 8
+  store i32 10, ptr %15, align 4
   ret void
 }
 
 define void @"Main.testCast()=>(Void)"() {
 "#block2":
-  %i = alloca i32
-  %l = alloca i64
-  %ptrI = alloca i64
-  %f = alloca float
-  %pi = alloca ptr
-  %d = alloca double
-  %w = alloca i32
-  %lw = alloca i64
-  %0 = load i32, ptr %i
+  %i = alloca i32, align 4
+  %l = alloca i64, align 8
+  %ptrI = alloca i64, align 8
+  %f = alloca float, align 4
+  %pi = alloca ptr, align 8
+  %d = alloca double, align 8
+  %w = alloca i32, align 4
+  %lw = alloca i64, align 8
+  %0 = load i32, ptr %i, align 4
   %1 = sext i32 %0 to i64
-  %2 = load i32, ptr %i
+  %2 = load i32, ptr %i, align 4
   %3 = sext i32 %2 to i64
-  %4 = load i64, ptr %l
+  %4 = load i64, ptr %l, align 8
   %5 = trunc i64 %4 to i32
-  %6 = load i64, ptr %l
-  %7 = load i64, ptr %ptrI
+  %6 = load i64, ptr %l, align 8
+  %7 = load i64, ptr %ptrI, align 8
   %8 = trunc i64 %7 to i32
-  %9 = load i64, ptr %ptrI
-  %10 = load i64, ptr %ptrI
+  %9 = load i64, ptr %ptrI, align 8
+  %10 = load i64, ptr %ptrI, align 8
   %11 = inttoptr i64 %10 to ptr
-  %12 = load i32, ptr %w
+  %12 = load i32, ptr %w, align 4
   %13 = zext i32 %12 to i64
-  %14 = load i32, ptr %w
+  %14 = load i32, ptr %w, align 4
   %15 = zext i32 %14 to i64
-  %16 = load i64, ptr %lw
-  %17 = load i64, ptr %lw
-  %18 = load i32, ptr %i
-  %19 = load i64, ptr %l
+  %16 = load i64, ptr %lw, align 8
+  %17 = load i64, ptr %lw, align 8
+  %18 = load i32, ptr %i, align 4
+  %19 = load i64, ptr %l, align 8
   %20 = sext i32 %18 to i64
   %21 = icmp eq i64 %20, %19
-  %22 = load i32, ptr %i
-  %23 = load i64, ptr %ptrI
+  %22 = load i32, ptr %i, align 4
+  %23 = load i64, ptr %ptrI, align 8
   %24 = sext i32 %22 to i64
   %25 = icmp eq i64 %24, %23
-  %26 = load i32, ptr %i
-  %27 = load i32, ptr %w
-  %28 = load i32, ptr %i
-  %29 = load i64, ptr %lw
-  %30 = load i64, ptr %l
-  %31 = load i32, ptr %i
+  %26 = load i32, ptr %i, align 4
+  %27 = load i32, ptr %w, align 4
+  %28 = load i32, ptr %i, align 4
+  %29 = load i64, ptr %lw, align 8
+  %30 = load i64, ptr %l, align 8
+  %31 = load i32, ptr %i, align 4
   %32 = sext i32 %31 to i64
   %33 = icmp eq i64 %30, %32
-  %34 = load i64, ptr %l
-  %35 = load i64, ptr %ptrI
+  %34 = load i64, ptr %l, align 8
+  %35 = load i64, ptr %ptrI, align 8
   %36 = icmp eq i64 %34, %35
-  %37 = load i64, ptr %l
-  %38 = load i32, ptr %w
+  %37 = load i64, ptr %l, align 8
+  %38 = load i32, ptr %w, align 4
   %39 = zext i32 %38 to i64
   %40 = icmp eq i64 %37, %39
-  %41 = load i64, ptr %l
-  %42 = load i64, ptr %lw
-  %43 = load i64, ptr %ptrI
-  %44 = load i32, ptr %i
+  %41 = load i64, ptr %l, align 8
+  %42 = load i64, ptr %lw, align 8
+  %43 = load i64, ptr %ptrI, align 8
+  %44 = load i32, ptr %i, align 4
   %45 = sext i32 %44 to i64
   %46 = icmp eq i64 %43, %45
-  %47 = load i64, ptr %ptrI
-  %48 = load i64, ptr %l
+  %47 = load i64, ptr %ptrI, align 8
+  %48 = load i64, ptr %l, align 8
   %49 = icmp eq i64 %47, %48
-  %50 = load i64, ptr %ptrI
-  %51 = load i32, ptr %w
-  %52 = load i64, ptr %ptrI
-  %53 = load i64, ptr %lw
-  %54 = load ptr, ptr %pi
-  store i16 2, ptr %54
-  store float 3.000000e+01, ptr %f
-  %55 = load float, ptr %f
+  %50 = load i64, ptr %ptrI, align 8
+  %51 = load i32, ptr %w, align 4
+  %52 = load i64, ptr %ptrI, align 8
+  %53 = load i64, ptr %lw, align 8
+  %54 = load ptr, ptr %pi, align 8
+  store i16 2, ptr %54, align 2
+  store float 3.000000e+01, ptr %f, align 4
+  %55 = load float, ptr %f, align 4
   %56 = call i64 (ptr, ...) @printf(ptr @"#anonymous2", float %55)
-  %57 = load float, ptr %f
+  %57 = load float, ptr %f, align 4
   %58 = fpext float %57 to double
   %59 = call i64 (ptr, ...) @printf(ptr @"#anonymous3", double %58)
-  store i8 1, ptr %i
-  %60 = load ptr, ptr %pi
+  store i8 1, ptr %i, align 1
+  %60 = load ptr, ptr %pi, align 8
   %61 = ptrtoint ptr %60 to i64
-  store ptr inttoptr (i64 10 to ptr), ptr %pi
-  %62 = load i64, ptr %l
+  store ptr inttoptr (i64 10 to ptr), ptr %pi, align 8
+  %62 = load i64, ptr %l, align 8
   %63 = inttoptr i64 %62 to ptr
-  store ptr %63, ptr %pi
-  %64 = load i64, ptr %ptrI
+  store ptr %63, ptr %pi, align 8
+  %64 = load i64, ptr %ptrI, align 8
   %65 = inttoptr i64 %64 to ptr
-  store ptr %65, ptr %pi
-  store double 1.000000e+01, ptr %d
-  %66 = load double, ptr %d
+  store ptr %65, ptr %pi, align 8
+  store double 1.000000e+01, ptr %d, align 8
+  %66 = load double, ptr %d, align 8
   %67 = fptrunc double %66 to float
-  store float %67, ptr %f
-  %68 = load float, ptr %f
+  store float %67, ptr %f, align 4
+  %68 = load float, ptr %f, align 4
   %69 = fptosi float %68 to i32
-  store i32 %69, ptr %i
-  %70 = load i32, ptr %i
+  store i32 %69, ptr %i, align 4
+  %70 = load i32, ptr %i, align 4
   %71 = sitofp i32 %70 to float
-  store float %71, ptr %f
-  %72 = load i32, ptr @"!Other.i"
+  store float %71, ptr %f, align 4
+  %72 = load i32, ptr @"!Other.i", align 4
   %73 = sitofp i32 %72 to float
-  store float %73, ptr %f
+  store float %73, ptr %f, align 4
   ret void
 }
 
 define void @"Main.testSize()=>(Void)"() {
 "#block3":
-  %i = alloca i32
-  %pi = alloca ptr
-  %ptrI = alloca i64
+  %i = alloca i32, align 4
+  %pi = alloca ptr, align 8
+  %ptrI = alloca i64, align 8
   %0 = call i64 (ptr, ...) @printf(ptr @"#anonymous6", i8 4)
   %1 = call i64 (ptr, ...) @printf(ptr @"#anonymous7", i8 8)
   %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous8", i8 1)

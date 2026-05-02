@@ -6,7 +6,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %T = type { i32 }
@@ -16,47 +16,47 @@ target datalayout = "<sanitized>"
 
 define void @"test()"() {
 "#block0":
-  %a = alloca %T
+  %a = alloca %T, align 4
   call void @"T.~init(ref[T])"(ptr %a)
   call void @"T.~init(ref[T])"(ptr %a)
   call void @"T.~init(ref[T],Int[32])"(ptr %a, i32 5)
   call void @"T.~init(ref[T],Int[32],Int[32])"(ptr %a, i32 6, i32 8)
-  %pa = alloca ptr
-  %0 = load ptr, ptr %pa
+  %pa = alloca ptr, align 8
+  %0 = load ptr, ptr %pa, align 8
   call void @"T.~init(ref[T])"(ptr %0)
-  %1 = load ptr, ptr %pa
+  %1 = load ptr, ptr %pa, align 8
   call void @"T.~init(ref[T],Int[32])"(ptr %1, i32 5)
-  %2 = load ptr, ptr %pa
+  %2 = load ptr, ptr %pa, align 8
   call void @"T.~init(ref[T],Int[32],Int[32])"(ptr %2, i32 6, i32 8)
-  %i = alloca i32
-  store i32 5, ptr %i
+  %i = alloca i32, align 4
+  store i32 5, ptr %i, align 4
   ret void
 }
 
 define void @"T.~init(ref[T])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"T.~init(ref[T],Int[32])"(ptr %this, i32 %a) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %a2 = alloca i32
-  store i32 %a, ptr %a2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %a2 = alloca i32, align 4
+  store i32 %a, ptr %a2, align 4
   ret void
 }
 
 define void @"T.~init(ref[T],Int[32],Int[32])"(ptr %this, i32 %a, i32 %b) {
 "#block3":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %a2 = alloca i32
-  store i32 %a, ptr %a2
-  %b3 = alloca i32
-  store i32 %b, ptr %b3
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %a2 = alloca i32, align 4
+  store i32 %a, ptr %a2, align 4
+  %b3 = alloca i32, align 4
+  store i32 %b, ptr %b3, align 4
   ret void
 }
 ------------------------------------------------------------

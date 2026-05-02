@@ -26,7 +26,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -62,73 +62,73 @@ declare i64 @printf(ptr, ...)
 
 define void @"Main.main()=>(Void)"() {
 "#block1":
-  %li = alloca i32
-  %lpi = alloca ptr
-  %lbi = alloca i64
-  %lf = alloca float
-  %lpf = alloca ptr
-  %lbf = alloca double
-  %defIntInline = alloca i32
-  store i32 5, ptr %defIntInline
-  store i32 1, ptr @"!Main.gi"
-  store i32 2, ptr @"!Main.gi"
-  store i64 3, ptr @"!Main.gbi"
-  store float 4.000000e+00, ptr @"!Main.gf"
-  store float 5.000000e+00, ptr @"!Main.gf"
-  store double 6.000000e+00, ptr @"!Main.gbf"
-  store i32 7, ptr %li
-  store i32 8, ptr %li
-  store i64 9, ptr %lbi
-  store float 1.000000e+01, ptr %lf
-  store float 1.100000e+01, ptr %lf
-  store double 1.200000e+01, ptr %lbf
-  %0 = load i32, ptr @"!Main.gi"
+  %li = alloca i32, align 4
+  %lpi = alloca ptr, align 8
+  %lbi = alloca i64, align 8
+  %lf = alloca float, align 4
+  %lpf = alloca ptr, align 8
+  %lbf = alloca double, align 8
+  %defIntInline = alloca i32, align 4
+  store i32 5, ptr %defIntInline, align 4
+  store i32 1, ptr @"!Main.gi", align 4
+  store i32 2, ptr @"!Main.gi", align 4
+  store i64 3, ptr @"!Main.gbi", align 8
+  store float 4.000000e+00, ptr @"!Main.gf", align 4
+  store float 5.000000e+00, ptr @"!Main.gf", align 4
+  store double 6.000000e+00, ptr @"!Main.gbf", align 8
+  store i32 7, ptr %li, align 4
+  store i32 8, ptr %li, align 4
+  store i64 9, ptr %lbi, align 8
+  store float 1.000000e+01, ptr %lf, align 4
+  store float 1.100000e+01, ptr %lf, align 4
+  store double 1.200000e+01, ptr %lbf, align 8
+  %0 = load i32, ptr @"!Main.gi", align 4
   %1 = sext i32 %0 to i64
-  %2 = load float, ptr @"!Main.gf"
+  %2 = load float, ptr @"!Main.gf", align 4
   %3 = fpext float %2 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %1, double %3)
-  %4 = load i64, ptr @"!Main.gbi"
-  %5 = load double, ptr @"!Main.gbf"
+  %4 = load i64, ptr @"!Main.gbi", align 8
+  %5 = load double, ptr @"!Main.gbf", align 8
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %4, double %5)
-  %6 = load i32, ptr %li
+  %6 = load i32, ptr %li, align 4
   %7 = sext i32 %6 to i64
-  %8 = load float, ptr %lf
+  %8 = load float, ptr %lf, align 4
   %9 = fpext float %8 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %7, double %9)
-  %10 = load i64, ptr %lbi
-  %11 = load double, ptr %lbf
+  %10 = load i64, ptr %lbi, align 8
+  %11 = load double, ptr %lbf, align 8
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %10, double %11)
-  %12 = load i32, ptr @"!Main.gi"
+  %12 = load i32, ptr @"!Main.gi", align 4
   %13 = add nsw i32 %12, 100
-  %14 = load float, ptr @"!Main.gf"
+  %14 = load float, ptr @"!Main.gf", align 4
   %15 = fadd float %14, 1.000000e+02
   %16 = sext i32 %13 to i64
   %17 = fpext float %15 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %16, double %17)
-  %18 = load i32, ptr %li
+  %18 = load i32, ptr %li, align 4
   %19 = add nsw i32 %18, 200
-  %20 = load float, ptr %lf
+  %20 = load float, ptr %lf, align 4
   %21 = fadd float %20, 2.000000e+02
   %22 = sext i32 %19 to i64
   %23 = fpext float %21 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %22, double %23)
-  %24 = load float, ptr @"!Main.gf"
+  %24 = load float, ptr @"!Main.gf", align 4
   %25 = fptosi float %24 to i64
-  %26 = load i32, ptr @"!Main.gi"
+  %26 = load i32, ptr @"!Main.gi", align 4
   %27 = sitofp i32 %26 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %25, double %27)
-  %28 = load i32, ptr @"!Main.gi"
+  %28 = load i32, ptr @"!Main.gi", align 4
   %29 = sext i32 %28 to i64
-  %30 = load i32, ptr @"!Main.gi"
+  %30 = load i32, ptr @"!Main.gi", align 4
   %31 = sitofp i32 %30 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %29, double %31)
-  %32 = load float, ptr @"!Main.gf"
+  %32 = load float, ptr @"!Main.gf", align 4
   %33 = fptosi float %32 to i64
-  %34 = load float, ptr @"!Main.gf"
+  %34 = load float, ptr @"!Main.gf", align 4
   %35 = fpext float %34 to double
   call void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %33, double %35)
   call void @"Main.testVarOverride()=>(Void)"()
-  %36 = load i32, ptr @"!Main.gi"
+  %36 = load i32, ptr @"!Main.gi", align 4
   %37 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", i32 %36)
   call void @"Main.testGlobals()"()
   call void @"Main.testOtherModules()=>(Void)"()
@@ -137,56 +137,56 @@ define void @"Main.main()=>(Void)"() {
 
 define void @"Main.testVars(Int[64],Float[64])=>(Void)"(i64 %ai, double %af) {
 "#block2":
-  %ai1 = alloca i64
-  store i64 %ai, ptr %ai1
-  %af2 = alloca double
-  store double %af, ptr %af2
-  %li = alloca i32
-  %lf = alloca float
-  %0 = load i64, ptr %ai1
-  %1 = load double, ptr %af2
+  %ai1 = alloca i64, align 8
+  store i64 %ai, ptr %ai1, align 8
+  %af2 = alloca double, align 8
+  store double %af, ptr %af2, align 8
+  %li = alloca i32, align 4
+  %lf = alloca float, align 4
+  %0 = load i64, ptr %ai1, align 8
+  %1 = load double, ptr %af2, align 8
   %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous1", i64 %0, double %1)
-  store i64 123, ptr %ai1
-  store double 4.560000e+02, ptr %af2
+  store i64 123, ptr %ai1, align 8
+  store double 4.560000e+02, ptr %af2, align 8
   ret void
 }
 
 define void @"Main.testVarOverride()=>(Void)"() {
 "#block3":
-  %gi = alloca i32
-  store i32 60, ptr %gi
-  %0 = load i32, ptr %gi
+  %gi = alloca i32, align 4
+  store i32 60, ptr %gi, align 4
+  %0 = load i32, ptr %gi, align 4
   %1 = call i64 (ptr, ...) @printf(ptr @"#anonymous2", i32 %0)
   ret void
 }
 
 define void @"Main.testGlobals()"() {
 "#block4":
-  store ptr @"!Main.gi", ptr @"!Main.gpi"
-  store i32 10, ptr @"!Main.gi"
-  %0 = load ptr, ptr @"!Main.gpi"
-  %1 = load i32, ptr %0
+  store ptr @"!Main.gi", ptr @"!Main.gpi", align 8
+  store i32 10, ptr @"!Main.gi", align 4
+  %0 = load ptr, ptr @"!Main.gpi", align 8
+  %1 = load i32, ptr %0, align 4
   %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous3", i32 %1)
-  %i = alloca i32
-  store i32 0, ptr %i
+  %i = alloca i32, align 4
+  store i32 0, ptr %i, align 4
   br label %"#block5"
 
 "#block5":                                        ; preds = %"#block6", %"#block4"
-  %3 = load i32, ptr %i
+  %3 = load i32, ptr %i, align 4
   %4 = icmp slt i32 %3, 10
   br i1 %4, label %"#block7", label %"#block8"
 
 "#block6":                                        ; preds = %"#block7"
-  %5 = load i32, ptr %i
+  %5 = load i32, ptr %i, align 4
   %6 = add nsw i32 %5, 1
-  store i32 %6, ptr %i
+  store i32 %6, ptr %i, align 4
   br label %"#block5"
 
 "#block7":                                        ; preds = %"#block5"
-  %7 = load i32, ptr %i
+  %7 = load i32, ptr %i, align 4
   %8 = sext i32 %7 to i64
   %9 = getelementptr [10 x i32], ptr @"!Main.garr", i32 0, i64 %8
-  %10 = load i32, ptr %9
+  %10 = load i32, ptr %9, align 4
   %11 = call i64 (ptr, ...) @printf(ptr @"#anonymous4", i32 %10)
   br label %"#block6"
 
@@ -197,13 +197,13 @@ define void @"Main.testGlobals()"() {
 
 define void @"Main.testOtherModules()=>(Void)"() {
 "#block9":
-  store i32 2, ptr @"!Other.gi"
-  store double 0x401D333340000000, ptr @"!Other.gf"
-  %0 = load i32, ptr @"!Other.gi"
-  %1 = load double, ptr @"!Other.gf"
+  store i32 2, ptr @"!Other.gi", align 4
+  store double 0x401D333340000000, ptr @"!Other.gf", align 8
+  %0 = load i32, ptr @"!Other.gi", align 4
+  %1 = load double, ptr @"!Other.gf", align 8
   %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous6", i32 %0, double %1)
-  store i32 4, ptr @"!Other.Nested.gni"
-  %3 = load i32, ptr @"!Other.Nested.gni"
+  store i32 4, ptr @"!Other.Nested.gni", align 4
+  %3 = load i32, ptr @"!Other.Nested.gni", align 4
   %4 = call i64 (ptr, ...) @printf(ptr @"#anonymous8", i32 %3)
   ret void
 }

@@ -4,7 +4,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -15,17 +15,17 @@ target datalayout = "<sanitized>"
 
 define void @"test()"() {
 "#block0":
-  %i = alloca i32
-  %i2 = alloca i32
-  store i32 257, ptr %i
-  store i32 258, ptr %i2
-  %0 = load i32, ptr %i
-  %1 = load i32, ptr %i2
+  %i = alloca i32, align 4
+  %i2 = alloca i32, align 4
+  store i32 257, ptr %i, align 4
+  store i32 258, ptr %i2, align 4
+  %0 = load i32, ptr %i, align 4
+  %1 = load i32, ptr %i2, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %0, i32 %1)
-  %pc = alloca ptr
-  store ptr %i, ptr %pc
-  %3 = load ptr, ptr %pc
-  %4 = load i8, ptr %3
+  %pc = alloca ptr, align 8
+  store ptr %i, ptr %pc, align 8
+  %3 = load ptr, ptr %pc, align 8
+  %4 = load i8, ptr %3, align 1
   %5 = sext i8 %4 to i32
   %6 = call i32 (ptr, ...) @printf(ptr @"#anonymous1", i32 %5)
   ret void

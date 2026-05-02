@@ -4,7 +4,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -23,74 +23,74 @@ declare i64 @printf(ptr, ...)
 
 define void @"Main.start()=>(Void)"() {
 "#block1":
-  %i = alloca i32
-  %j = alloca i32
-  %k = alloca i32
-  store i32 0, ptr %i
+  %i = alloca i32, align 4
+  %j = alloca i32, align 4
+  %k = alloca i32, align 4
+  store i32 0, ptr %i, align 4
   br label %"#block2"
 
 "#block2":                                        ; preds = %"#block3", %"#block1"
-  %0 = load i32, ptr %i
+  %0 = load i32, ptr %i, align 4
   %1 = icmp slt i32 %0, 10
   br i1 %1, label %"#block4", label %"#block5"
 
 "#block3":                                        ; preds = %"#block4"
-  %2 = load i32, ptr %i
+  %2 = load i32, ptr %i, align 4
   %3 = add nsw i32 %2, 1
-  store i32 %3, ptr %i
+  store i32 %3, ptr %i, align 4
   br label %"#block2"
 
 "#block4":                                        ; preds = %"#block2"
-  %4 = load i32, ptr %i
+  %4 = load i32, ptr %i, align 4
   %5 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", i32 %4)
   br label %"#block3"
 
 "#block5":                                        ; preds = %"#block2"
-  store i32 0, ptr %i
-  store i32 0, ptr %j
-  %k1 = alloca i32
-  %k2 = alloca i32
+  store i32 0, ptr %i, align 4
+  store i32 0, ptr %j, align 4
+  %k1 = alloca i32, align 4
+  %k2 = alloca i32, align 4
   br label %"#block6"
 
 "#block6":                                        ; preds = %"#block7", %"#block5"
-  %6 = load i32, ptr %i
+  %6 = load i32, ptr %i, align 4
   %7 = icmp slt i32 %6, 5
   br i1 %7, label %"#block8", label %"#block9"
 
 "#block7":                                        ; preds = %"#block13"
-  %8 = load i32, ptr %i
+  %8 = load i32, ptr %i, align 4
   %9 = add nsw i32 %8, 1
-  store i32 %9, ptr %i
-  %10 = load i32, ptr %j
+  store i32 %9, ptr %i, align 4
+  %10 = load i32, ptr %j, align 4
   %11 = mul nsw i32 %10, 2
-  store i32 %11, ptr %j
+  store i32 %11, ptr %j, align 4
   br label %"#block6"
 
 "#block8":                                        ; preds = %"#block6"
-  %12 = load i32, ptr %i
+  %12 = load i32, ptr %i, align 4
   %13 = call i64 (ptr, ...) @printf(ptr @"#anonymous1", i32 %12)
-  %14 = load i32, ptr %j
+  %14 = load i32, ptr %j, align 4
   %15 = call i64 (ptr, ...) @printf(ptr @"#anonymous2", i32 %14)
-  store i32 0, ptr %k1
+  store i32 0, ptr %k1, align 4
   br label %"#block10"
 
 "#block9":                                        ; preds = %"#block6"
-  store i32 0, ptr %i
+  store i32 0, ptr %i, align 4
   ret void
 
 "#block10":                                       ; preds = %"#block11", %"#block8"
-  %16 = load i32, ptr %k1
+  %16 = load i32, ptr %k1, align 4
   %17 = icmp slt i32 %16, 5
   br i1 %17, label %"#block12", label %"#block13"
 
 "#block11":                                       ; preds = %"#block12"
-  %18 = load i32, ptr %k1
+  %18 = load i32, ptr %k1, align 4
   %19 = add nsw i32 %18, 1
-  store i32 %19, ptr %k1
+  store i32 %19, ptr %k1, align 4
   br label %"#block10"
 
 "#block12":                                       ; preds = %"#block10"
-  store i32 1, ptr %k2
+  store i32 1, ptr %k2, align 4
   br label %"#block11"
 
 "#block13":                                       ; preds = %"#block10"

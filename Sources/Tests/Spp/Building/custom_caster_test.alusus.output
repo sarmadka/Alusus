@@ -4,7 +4,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %T1 = type { i32 }
@@ -15,8 +15,8 @@ target datalayout = "<sanitized>"
 
 define void @"test()"() {
 "#block0":
-  %t1 = alloca %T1
-  %t2 = alloca %T2
+  %t1 = alloca %T1, align 4
+  %t2 = alloca %T2, align 4
   %0 = call i32 @"T1.~cast(ref[T1])=>(Int[32])"(ptr %t1)
   %1 = call i32 @"T2.~cast(ref[T2])=>(Int[32])"(ptr %t2)
   ret void
@@ -24,17 +24,17 @@ define void @"test()"() {
 
 define i32 @"T1.~cast(ref[T1])=>(Int[32])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %T1, ptr %0, i32 0, i32 0
-  %2 = load i32, ptr %1
+  %2 = load i32, ptr %1, align 4
   ret i32 %2
 }
 
 define i32 @"T2.~cast(ref[T2])=>(Int[32])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
 }
 ------------------------------------------------------------

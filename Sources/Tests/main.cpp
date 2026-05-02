@@ -205,7 +205,7 @@ void updateTestSnapshot(Str const &fileName)
   );
 
   std::ofstream expectedResult(fileName + ".output");
-  expectedResult << normalizeOutput(runResultContent);
+  expectedResult << runResultContent;
 
   std::cout << "Done." << std::endl;
 }

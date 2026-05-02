@@ -8,7 +8,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -22,23 +22,23 @@ define void @__entry__2() {
 
 define i64 @"Main.main(Int[64],Float[64])=>(Int[64])"(i64 %a, double %b) {
 "#block1":
-  %a1 = alloca i64
-  store i64 %a, ptr %a1
-  %b2 = alloca double
-  store double %b, ptr %b2
+  %a1 = alloca i64, align 8
+  store i64 %a, ptr %a1, align 8
+  %b2 = alloca double, align 8
+  store double %b, ptr %b2, align 8
 }
 
 define i64 @"Main.f(Int[32],Float[32])=>(Int[64])"(i32 %a, float %b) {
 "#block2":
-  %a1 = alloca i32
-  store i32 %a, ptr %a1
-  %b2 = alloca float
-  store float %b, ptr %b2
+  %a1 = alloca i32, align 4
+  store i32 %a, ptr %a1, align 4
+  %b2 = alloca float, align 4
+  store float %b, ptr %b2, align 4
 }
 
 define i32 @"Main.g(ptr[Int[32]])=>(Int[32])"(ptr %a) {
 "#block3":
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
 }
 ------------------------------------------------------------

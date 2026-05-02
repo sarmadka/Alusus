@@ -14,7 +14,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -43,20 +43,20 @@ define void @"Main.start()=>(Void)"() {
   %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous4", double 0x400921FB00000000, double 0x3E49C511E0000000)
   %3 = call i64 (ptr, ...) @printf(ptr @"#anonymous5", i32 3, i32 15)
   %4 = call i64 (ptr, ...) @printf(ptr @"#anonymous6", double 0x401921FB00000000, double 0x3E59C511E0000000)
-  %daysCombined = alloca i32
-  %piTrippled = alloca double
-  store i32 7, ptr %daysCombined
-  %5 = load i32, ptr %daysCombined
+  %daysCombined = alloca i32, align 4
+  %piTrippled = alloca double, align 8
+  store i32 7, ptr %daysCombined, align 4
+  %5 = load i32, ptr %daysCombined, align 4
   %6 = add nsw i32 %5, 30
-  store i32 %6, ptr %daysCombined
-  store double 0x400921FB00000000, ptr %piTrippled
-  %7 = load double, ptr %piTrippled
+  store i32 %6, ptr %daysCombined, align 4
+  store double 0x400921FB00000000, ptr %piTrippled, align 8
+  %7 = load double, ptr %piTrippled, align 8
   %8 = fmul double %7, 3.000000e+00
-  store double %8, ptr %piTrippled
-  %9 = load i32, ptr %daysCombined
-  %10 = load double, ptr %piTrippled
+  store double %8, ptr %piTrippled, align 8
+  %9 = load i32, ptr %daysCombined, align 4
+  %10 = load double, ptr %piTrippled, align 8
   %11 = call i64 (ptr, ...) @printf(ptr @"#anonymous7", i32 %9, double %10)
-  %p = alloca ptr
+  %p = alloca ptr, align 8
   ret void
 }
 

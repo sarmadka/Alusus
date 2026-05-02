@@ -1,7 +1,7 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Point1 = type { i32, i32 }
@@ -11,19 +11,19 @@ target datalayout = "<sanitized>"
 
 define void @"convertPoint1(Point1)=>(Point1)"(ptr sret(%Point1) %__sret, ptr byval(%Point1) align 8 %p) {
 "#block0":
-  %0 = load %Point1, ptr %p
-  %p1 = alloca %Point1
-  store %Point1 %0, ptr %p1
-  %r = alloca %Point1
-  %1 = load %Point1, ptr %r
-  store %Point1 %1, ptr %__sret
+  %0 = load %Point1, ptr %p, align 4
+  %p1 = alloca %Point1, align 4
+  store %Point1 %0, ptr %p1, align 4
+  %r = alloca %Point1, align 4
+  %1 = load %Point1, ptr %r, align 4
+  store %Point1 %1, ptr %__sret, align 4
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Point1 = type { i32, i32 }
@@ -34,10 +34,10 @@ target datalayout = "<sanitized>"
 
 define void @"convertPoint2(Point1)=>(Point2)"(ptr %"#ret", ptr byval(%Point1) align 8 %p) {
 "#block0":
-  %0 = load %Point1, ptr %p
-  %p1 = alloca %Point1
-  store %Point1 %0, ptr %p1
-  %r = alloca %Point2
+  %0 = load %Point1, ptr %p, align 4
+  %p1 = alloca %Point1, align 4
+  store %Point1 %0, ptr %p1, align 4
+  %r = alloca %Point2, align 4
   call void @"Point2.~init(ref[Point2])"(ptr %r)
   call void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %"#ret", ptr %r)
   ret void
@@ -45,24 +45,24 @@ define void @"convertPoint2(Point1)=>(Point2)"(ptr %"#ret", ptr byval(%Point1) a
 
 define void @"Point2.~init(ref[Point2])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %this, ptr %src) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %src2 = alloca ptr
-  store ptr %src, ptr %src2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %src2 = alloca ptr, align 8
+  store ptr %src, ptr %src2, align 8
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Point1 = type { i32, i32 }
@@ -73,27 +73,27 @@ target datalayout = "<sanitized>"
 
 define void @"convertPoint3(Point2)=>(Point1)"(ptr sret(%Point1) %__sret, ptr %p) {
 "#block0":
-  %p1 = alloca %Point2
+  %p1 = alloca %Point2, align 4
   call void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %p1, ptr %p)
-  %r = alloca %Point1
-  %0 = load %Point1, ptr %r
-  store %Point1 %0, ptr %__sret
+  %r = alloca %Point1, align 4
+  %0 = load %Point1, ptr %r, align 4
+  store %Point1 %0, ptr %__sret, align 4
   ret void
 }
 
 define void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %this, ptr %src) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %src2 = alloca ptr
-  store ptr %src, ptr %src2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %src2 = alloca ptr, align 8
+  store ptr %src, ptr %src2, align 8
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Point2 = type { i32, i32 }
@@ -103,9 +103,9 @@ target datalayout = "<sanitized>"
 
 define void @"convertPoint4(Point2)=>(Point2)"(ptr %"#ret", ptr %p) {
 "#block0":
-  %p1 = alloca %Point2
+  %p1 = alloca %Point2, align 4
   call void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %p1, ptr %p)
-  %r = alloca %Point2
+  %r = alloca %Point2, align 4
   call void @"Point2.~init(ref[Point2])"(ptr %r)
   call void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %"#ret", ptr %r)
   ret void
@@ -113,17 +113,17 @@ define void @"convertPoint4(Point2)=>(Point2)"(ptr %"#ret", ptr %p) {
 
 define void @"Point2.~init(ref[Point2],ref[Point2])"(ptr %this, ptr %src) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %src2 = alloca ptr
-  store ptr %src, ptr %src2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %src2 = alloca ptr, align 8
+  store ptr %src, ptr %src2, align 8
   ret void
 }
 
 define void @"Point2.~init(ref[Point2])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 ------------------------------------------------------------

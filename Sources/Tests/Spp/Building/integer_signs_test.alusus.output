@@ -8,7 +8,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -35,63 +35,63 @@ define void @"test()"() {
 "#block0":
   call void (ptr, ...) @fprintf(ptr @"#anonymous0", i8 4)
   call void (ptr, ...) @fprintf(ptr @"#anonymous1", i8 2)
-  %i = alloca i8
-  store i8 5, ptr %i
-  %w = alloca i8
-  store i8 5, ptr %w
-  %li = alloca i16
-  store i16 31000, ptr %li
-  %lw = alloca i16
-  store i16 31000, ptr %lw
-  %0 = load i8, ptr %w
-  %1 = load i8, ptr %w
+  %i = alloca i8, align 1
+  store i8 5, ptr %i, align 1
+  %w = alloca i8, align 1
+  store i8 5, ptr %w, align 1
+  %li = alloca i16, align 2
+  store i16 31000, ptr %li, align 2
+  %lw = alloca i16, align 2
+  store i16 31000, ptr %lw, align 2
+  %0 = load i8, ptr %w, align 1
+  %1 = load i8, ptr %w, align 1
   %2 = zext i8 %1 to i16
   %3 = icmp sgt i16 %2, 200
   call void (ptr, ...) @fprintf(ptr @"#anonymous3", i1 %3)
-  %4 = load i8, ptr %i
+  %4 = load i8, ptr %i, align 1
   %5 = icmp sgt i8 %4, 4
   call void (ptr, ...) @fprintf(ptr @"#anonymous4", i1 %5)
-  %6 = load i8, ptr %i
+  %6 = load i8, ptr %i, align 1
   %7 = sext i8 %6 to i16
   %8 = icmp sgt i16 %7, 200
   call void (ptr, ...) @fprintf(ptr @"#anonymous5", i1 %8)
-  %9 = load i16, ptr %li
+  %9 = load i16, ptr %li, align 2
   %10 = icmp sgt i16 %9, 30000
   call void (ptr, ...) @fprintf(ptr @"#anonymous6", i1 %10)
-  %11 = load i16, ptr %li
+  %11 = load i16, ptr %li, align 2
   %12 = sext i16 %11 to i32
   %13 = icmp sgt i32 %12, 34000
   call void (ptr, ...) @fprintf(ptr @"#anonymous7", i1 %13)
-  %14 = load i16, ptr %lw
-  %15 = load i16, ptr %lw
+  %14 = load i16, ptr %lw, align 2
+  %15 = load i16, ptr %lw, align 2
   %16 = zext i16 %15 to i32
   %17 = icmp sgt i32 %16, 34000
   call void (ptr, ...) @fprintf(ptr @"#anonymous9", i1 %17)
-  store i8 -126, ptr %w
-  store i8 -126, ptr %w
-  store i8 127, ptr %i
-  store i8 -128, ptr %i
-  %18 = load i8, ptr %i
+  store i8 -126, ptr %w, align 1
+  store i8 -126, ptr %w, align 1
+  store i8 127, ptr %i, align 1
+  store i8 -128, ptr %i, align 1
+  %18 = load i8, ptr %i, align 1
   %19 = sext i8 %18 to i32
-  %20 = load i8, ptr %w
+  %20 = load i8, ptr %w, align 1
   %21 = zext i8 %20 to i32
   call void (ptr, ...) @fprintf(ptr @"#anonymous10", i32 %19, i32 %21)
-  store i8 -1, ptr %w
-  %22 = load i8, ptr %w
+  store i8 -1, ptr %w, align 1
+  %22 = load i8, ptr %w, align 1
   %23 = zext i8 %22 to i32
   call void (ptr, ...) @fprintf(ptr @"#anonymous11", i32 %23)
-  store i8 -1, ptr %w
-  store i8 1, ptr %w
-  %24 = load i8, ptr %w
+  store i8 -1, ptr %w, align 1
+  store i8 1, ptr %w, align 1
+  %24 = load i8, ptr %w, align 1
   %25 = icmp eq i8 %24, 1
   call void (ptr, ...) @fprintf(ptr @"#anonymous12", i1 %25)
-  %26 = load i8, ptr %w
-  store i8 1, ptr %i
-  store i8 -1, ptr %i
-  %27 = load i8, ptr %i
+  %26 = load i8, ptr %w, align 1
+  store i8 1, ptr %i, align 1
+  store i8 -1, ptr %i, align 1
+  %27 = load i8, ptr %i, align 1
   %28 = icmp eq i8 %27, -1
   call void (ptr, ...) @fprintf(ptr @"#anonymous14", i1 %28)
-  %29 = load i8, ptr %i
+  %29 = load i8, ptr %i, align 1
   %30 = icmp eq i8 %29, 1
   call void (ptr, ...) @fprintf(ptr @"#anonymous15", i1 %30)
   ret void

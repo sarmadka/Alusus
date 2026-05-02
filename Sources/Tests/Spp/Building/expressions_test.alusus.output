@@ -10,7 +10,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -154,169 +154,169 @@ define void @"Main.testInteger()=>(Void)"() {
   %23 = call i64 (ptr, ...) @printf(ptr @"#anonymous26", i32 -2)
   %24 = call i64 (ptr, ...) @printf(ptr @"#anonymous27", i32 -20)
   %25 = call i64 (ptr, ...) @printf(ptr @"#anonymous28", i32 20)
-  %i32 = alloca i32
-  %i64 = alloca i64
-  store i32 3, ptr %i32
-  store i64 4, ptr %i64
-  %26 = load i32, ptr %i32
+  %i32 = alloca i32, align 4
+  %i64 = alloca i64, align 8
+  store i32 3, ptr %i32, align 4
+  store i64 4, ptr %i64, align 8
+  %26 = load i32, ptr %i32, align 4
   %27 = add nsw i32 %26, 1
-  store i32 %27, ptr %i32
+  store i32 %27, ptr %i32, align 4
   %28 = call i64 (ptr, ...) @printf(ptr @"#anonymous29", i32 %27)
-  %29 = load i64, ptr %i64
+  %29 = load i64, ptr %i64, align 8
   %30 = add nsw i64 %29, 1
-  store i64 %30, ptr %i64
+  store i64 %30, ptr %i64, align 8
   %31 = call i64 (ptr, ...) @printf(ptr @"#anonymous30", i64 %30)
-  %32 = load i32, ptr %i32
+  %32 = load i32, ptr %i32, align 4
   %33 = sub nsw i32 %32, 1
-  store i32 %33, ptr %i32
+  store i32 %33, ptr %i32, align 4
   %34 = call i64 (ptr, ...) @printf(ptr @"#anonymous31", i32 %33)
-  %35 = load i64, ptr %i64
+  %35 = load i64, ptr %i64, align 8
   %36 = sub nsw i64 %35, 1
-  store i64 %36, ptr %i64
+  store i64 %36, ptr %i64, align 8
   %37 = call i64 (ptr, ...) @printf(ptr @"#anonymous32", i64 %36)
-  %38 = load i32, ptr %i32
+  %38 = load i32, ptr %i32, align 4
   %39 = add nsw i32 %38, 1
-  store i32 %39, ptr %i32
+  store i32 %39, ptr %i32, align 4
   %40 = call i64 (ptr, ...) @printf(ptr @"#anonymous33", i32 %38)
-  %41 = load i64, ptr %i64
+  %41 = load i64, ptr %i64, align 8
   %42 = add nsw i64 %41, 1
-  store i64 %42, ptr %i64
+  store i64 %42, ptr %i64, align 8
   %43 = call i64 (ptr, ...) @printf(ptr @"#anonymous34", i64 %41)
-  %44 = load i32, ptr %i32
+  %44 = load i32, ptr %i32, align 4
   %45 = sub nsw i32 %44, 1
-  store i32 %45, ptr %i32
+  store i32 %45, ptr %i32, align 4
   %46 = call i64 (ptr, ...) @printf(ptr @"#anonymous35", i32 %44)
-  %47 = load i64, ptr %i64
+  %47 = load i64, ptr %i64, align 8
   %48 = sub nsw i64 %47, 1
-  store i64 %48, ptr %i64
+  store i64 %48, ptr %i64, align 8
   %49 = call i64 (ptr, ...) @printf(ptr @"#anonymous36", i64 %47)
-  store i32 5, ptr %i32
-  %50 = load i32, ptr %i32
+  store i32 5, ptr %i32, align 4
+  %50 = load i32, ptr %i32, align 4
   %51 = add nsw i32 %50, 7
-  store i32 %51, ptr %i32
-  %52 = load i32, ptr %i32
+  store i32 %51, ptr %i32, align 4
+  %52 = load i32, ptr %i32, align 4
   %53 = call i64 (ptr, ...) @printf(ptr @"#anonymous37", i32 %52)
-  %54 = load i32, ptr %i32
+  %54 = load i32, ptr %i32, align 4
   %55 = sub nsw i32 %54, 2
-  store i32 %55, ptr %i32
-  %56 = load i32, ptr %i32
+  store i32 %55, ptr %i32, align 4
+  %56 = load i32, ptr %i32, align 4
   %57 = call i64 (ptr, ...) @printf(ptr @"#anonymous38", i32 %56)
-  %58 = load i32, ptr %i32
+  %58 = load i32, ptr %i32, align 4
   %59 = mul nsw i32 %58, 2
-  store i32 %59, ptr %i32
-  %60 = load i32, ptr %i32
+  store i32 %59, ptr %i32, align 4
+  %60 = load i32, ptr %i32, align 4
   %61 = call i64 (ptr, ...) @printf(ptr @"#anonymous39", i32 %60)
-  %62 = load i32, ptr %i32
+  %62 = load i32, ptr %i32, align 4
   %63 = sitofp i32 %62 to float
   %64 = fmul float %63, 2.500000e+00
   %65 = fptosi float %64 to i32
-  store i32 %65, ptr %i32
-  %66 = load i32, ptr %i32
+  store i32 %65, ptr %i32, align 4
+  %66 = load i32, ptr %i32, align 4
   %67 = call i64 (ptr, ...) @printf(ptr @"#anonymous40", i32 %66)
-  %68 = load i32, ptr %i32
+  %68 = load i32, ptr %i32, align 4
   %69 = sdiv i32 %68, 5
-  store i32 %69, ptr %i32
-  %70 = load i32, ptr %i32
+  store i32 %69, ptr %i32, align 4
+  %70 = load i32, ptr %i32, align 4
   %71 = call i64 (ptr, ...) @printf(ptr @"#anonymous41", i32 %70)
-  %72 = load i32, ptr %i32
+  %72 = load i32, ptr %i32, align 4
   %73 = sitofp i32 %72 to float
   %74 = fdiv float %73, 5.500000e+00
   %75 = fptosi float %74 to i32
-  store i32 %75, ptr %i32
-  %76 = load i32, ptr %i32
+  store i32 %75, ptr %i32, align 4
+  %76 = load i32, ptr %i32, align 4
   %77 = call i64 (ptr, ...) @printf(ptr @"#anonymous42", i32 %76)
-  store i32 9, ptr %i32
-  %78 = load i32, ptr %i32
+  store i32 9, ptr %i32, align 4
+  %78 = load i32, ptr %i32, align 4
   %79 = srem i32 %78, 2
-  store i32 %79, ptr %i32
-  %80 = load i32, ptr %i32
+  store i32 %79, ptr %i32, align 4
+  %80 = load i32, ptr %i32, align 4
   %81 = call i64 (ptr, ...) @printf(ptr @"#anonymous43", i32 %80)
-  store i32 8, ptr %i32
-  %82 = load i32, ptr %i32
+  store i32 8, ptr %i32, align 4
+  %82 = load i32, ptr %i32, align 4
   %83 = ashr i32 %82, 2
-  store i32 %83, ptr %i32
-  %84 = load i32, ptr %i32
+  store i32 %83, ptr %i32, align 4
+  %84 = load i32, ptr %i32, align 4
   %85 = call i64 (ptr, ...) @printf(ptr @"#anonymous44", i32 %84)
-  store i32 8, ptr %i32
-  %86 = load i32, ptr %i32
+  store i32 8, ptr %i32, align 4
+  %86 = load i32, ptr %i32, align 4
   %87 = shl i32 %86, 2
-  store i32 %87, ptr %i32
-  %88 = load i32, ptr %i32
+  store i32 %87, ptr %i32, align 4
+  %88 = load i32, ptr %i32, align 4
   %89 = call i64 (ptr, ...) @printf(ptr @"#anonymous45", i32 %88)
-  store i32 7, ptr %i32
-  %90 = load i32, ptr %i32
+  store i32 7, ptr %i32, align 4
+  %90 = load i32, ptr %i32, align 4
   %91 = and i32 %90, 2
-  store i32 %91, ptr %i32
-  %92 = load i32, ptr %i32
+  store i32 %91, ptr %i32, align 4
+  %92 = load i32, ptr %i32, align 4
   %93 = call i64 (ptr, ...) @printf(ptr @"#anonymous46", i32 %92)
-  store i32 4, ptr %i32
-  %94 = load i32, ptr %i32
+  store i32 4, ptr %i32, align 4
+  %94 = load i32, ptr %i32, align 4
   %95 = or i32 %94, 2
-  store i32 %95, ptr %i32
-  %96 = load i32, ptr %i32
+  store i32 %95, ptr %i32, align 4
+  %96 = load i32, ptr %i32, align 4
   %97 = call i64 (ptr, ...) @printf(ptr @"#anonymous47", i32 %96)
-  store i32 7, ptr %i32
-  %98 = load i32, ptr %i32
+  store i32 7, ptr %i32, align 4
+  %98 = load i32, ptr %i32, align 4
   %99 = xor i32 %98, 12
-  store i32 %99, ptr %i32
-  %100 = load i32, ptr %i32
+  store i32 %99, ptr %i32, align 4
+  %100 = load i32, ptr %i32, align 4
   %101 = call i64 (ptr, ...) @printf(ptr @"#anonymous48", i32 %100)
-  store i64 15, ptr %i64
-  %102 = load i64, ptr %i64
+  store i64 15, ptr %i64, align 8
+  %102 = load i64, ptr %i64, align 8
   %103 = add nsw i64 %102, 7
-  store i64 %103, ptr %i64
-  %104 = load i64, ptr %i64
+  store i64 %103, ptr %i64, align 8
+  %104 = load i64, ptr %i64, align 8
   %105 = call i64 (ptr, ...) @printf(ptr @"#anonymous49", i64 %104)
-  %106 = load i64, ptr %i64
+  %106 = load i64, ptr %i64, align 8
   %107 = sub nsw i64 %106, 2
-  store i64 %107, ptr %i64
-  %108 = load i64, ptr %i64
+  store i64 %107, ptr %i64, align 8
+  %108 = load i64, ptr %i64, align 8
   %109 = call i64 (ptr, ...) @printf(ptr @"#anonymous50", i64 %108)
-  %110 = load i64, ptr %i64
+  %110 = load i64, ptr %i64, align 8
   %111 = mul nsw i64 %110, 2
-  store i64 %111, ptr %i64
-  %112 = load i64, ptr %i64
+  store i64 %111, ptr %i64, align 8
+  %112 = load i64, ptr %i64, align 8
   %113 = call i64 (ptr, ...) @printf(ptr @"#anonymous51", i64 %112)
-  %114 = load i64, ptr %i64
+  %114 = load i64, ptr %i64, align 8
   %115 = sdiv i64 %114, 5
-  store i64 %115, ptr %i64
-  %116 = load i64, ptr %i64
+  store i64 %115, ptr %i64, align 8
+  %116 = load i64, ptr %i64, align 8
   %117 = call i64 (ptr, ...) @printf(ptr @"#anonymous52", i64 %116)
-  store i64 9, ptr %i64
-  %118 = load i64, ptr %i64
+  store i64 9, ptr %i64, align 8
+  %118 = load i64, ptr %i64, align 8
   %119 = srem i64 %118, 2
-  store i64 %119, ptr %i64
-  %120 = load i64, ptr %i64
+  store i64 %119, ptr %i64, align 8
+  %120 = load i64, ptr %i64, align 8
   %121 = call i64 (ptr, ...) @printf(ptr @"#anonymous53", i64 %120)
-  store i64 8, ptr %i64
-  %122 = load i64, ptr %i64
+  store i64 8, ptr %i64, align 8
+  %122 = load i64, ptr %i64, align 8
   %123 = ashr i64 %122, 2
-  store i64 %123, ptr %i64
-  %124 = load i64, ptr %i64
+  store i64 %123, ptr %i64, align 8
+  %124 = load i64, ptr %i64, align 8
   %125 = call i64 (ptr, ...) @printf(ptr @"#anonymous54", i64 %124)
-  store i64 8, ptr %i64
-  %126 = load i64, ptr %i64
+  store i64 8, ptr %i64, align 8
+  %126 = load i64, ptr %i64, align 8
   %127 = shl i64 %126, 2
-  store i64 %127, ptr %i64
-  %128 = load i64, ptr %i64
+  store i64 %127, ptr %i64, align 8
+  %128 = load i64, ptr %i64, align 8
   %129 = call i64 (ptr, ...) @printf(ptr @"#anonymous55", i64 %128)
-  store i64 7, ptr %i64
-  %130 = load i64, ptr %i64
+  store i64 7, ptr %i64, align 8
+  %130 = load i64, ptr %i64, align 8
   %131 = and i64 %130, 2
-  store i64 %131, ptr %i64
-  %132 = load i64, ptr %i64
+  store i64 %131, ptr %i64, align 8
+  %132 = load i64, ptr %i64, align 8
   %133 = call i64 (ptr, ...) @printf(ptr @"#anonymous56", i64 %132)
-  store i64 4, ptr %i64
-  %134 = load i64, ptr %i64
+  store i64 4, ptr %i64, align 8
+  %134 = load i64, ptr %i64, align 8
   %135 = or i64 %134, 2
-  store i64 %135, ptr %i64
-  %136 = load i64, ptr %i64
+  store i64 %135, ptr %i64, align 8
+  %136 = load i64, ptr %i64, align 8
   %137 = call i64 (ptr, ...) @printf(ptr @"#anonymous57", i64 %136)
-  store i64 7, ptr %i64
-  %138 = load i64, ptr %i64
+  store i64 7, ptr %i64, align 8
+  %138 = load i64, ptr %i64, align 8
   %139 = xor i64 %138, 12
-  store i64 %139, ptr %i64
-  %140 = load i64, ptr %i64
+  store i64 %139, ptr %i64, align 8
+  %140 = load i64, ptr %i64, align 8
   %141 = call i64 (ptr, ...) @printf(ptr @"#anonymous58", i64 %140)
   ret void
 }
@@ -335,83 +335,83 @@ define void @"Main.testFloat()=>(Void)"() {
   %9 = call i64 (ptr, ...) @printf(ptr @"#anonymous68", float 2.000000e+00)
   %10 = call i64 (ptr, ...) @printf(ptr @"#anonymous69", float -2.300000e+01)
   %11 = call i64 (ptr, ...) @printf(ptr @"#anonymous70", float 2.300000e+01)
-  %f32 = alloca float
-  %f64 = alloca double
-  store float 5.000000e+00, ptr %f32
-  store double 6.000000e+00, ptr %f64
-  %12 = load float, ptr %f32
+  %f32 = alloca float, align 4
+  %f64 = alloca double, align 8
+  store float 5.000000e+00, ptr %f32, align 4
+  store double 6.000000e+00, ptr %f64, align 8
+  %12 = load float, ptr %f32, align 4
   %13 = fadd float %12, 1.000000e+00
-  store float %13, ptr %f32
+  store float %13, ptr %f32, align 4
   %14 = call i64 (ptr, ...) @printf(ptr @"#anonymous71", float %13)
-  %15 = load double, ptr %f64
+  %15 = load double, ptr %f64, align 8
   %16 = fadd double %15, 1.000000e+00
-  store double %16, ptr %f64
+  store double %16, ptr %f64, align 8
   %17 = call i64 (ptr, ...) @printf(ptr @"#anonymous72", double %16)
-  %18 = load float, ptr %f32
+  %18 = load float, ptr %f32, align 4
   %19 = fsub float %18, 1.000000e+00
-  store float %19, ptr %f32
+  store float %19, ptr %f32, align 4
   %20 = call i64 (ptr, ...) @printf(ptr @"#anonymous73", float %19)
-  %21 = load double, ptr %f64
+  %21 = load double, ptr %f64, align 8
   %22 = fsub double %21, 1.000000e+00
-  store double %22, ptr %f64
+  store double %22, ptr %f64, align 8
   %23 = call i64 (ptr, ...) @printf(ptr @"#anonymous74", double %22)
-  %24 = load float, ptr %f32
+  %24 = load float, ptr %f32, align 4
   %25 = fadd float %24, 1.000000e+00
-  store float %25, ptr %f32
+  store float %25, ptr %f32, align 4
   %26 = call i64 (ptr, ...) @printf(ptr @"#anonymous75", float %24)
-  %27 = load double, ptr %f64
+  %27 = load double, ptr %f64, align 8
   %28 = fadd double %27, 1.000000e+00
-  store double %28, ptr %f64
+  store double %28, ptr %f64, align 8
   %29 = call i64 (ptr, ...) @printf(ptr @"#anonymous76", double %27)
-  %30 = load float, ptr %f32
+  %30 = load float, ptr %f32, align 4
   %31 = fsub float %30, 1.000000e+00
-  store float %31, ptr %f32
+  store float %31, ptr %f32, align 4
   %32 = call i64 (ptr, ...) @printf(ptr @"#anonymous77", float %30)
-  %33 = load double, ptr %f64
+  %33 = load double, ptr %f64, align 8
   %34 = fsub double %33, 1.000000e+00
-  store double %34, ptr %f64
+  store double %34, ptr %f64, align 8
   %35 = call i64 (ptr, ...) @printf(ptr @"#anonymous78", double %33)
-  store float 5.000000e-01, ptr %f32
-  %36 = load float, ptr %f32
+  store float 5.000000e-01, ptr %f32, align 4
+  %36 = load float, ptr %f32, align 4
   %37 = fadd float %36, 0x3FE6666660000000
-  store float %37, ptr %f32
-  %38 = load float, ptr %f32
+  store float %37, ptr %f32, align 4
+  %38 = load float, ptr %f32, align 4
   %39 = call i64 (ptr, ...) @printf(ptr @"#anonymous79", float %38)
-  %40 = load float, ptr %f32
+  %40 = load float, ptr %f32, align 4
   %41 = fsub float %40, 0x3FC99999A0000000
-  store float %41, ptr %f32
-  %42 = load float, ptr %f32
+  store float %41, ptr %f32, align 4
+  %42 = load float, ptr %f32, align 4
   %43 = call i64 (ptr, ...) @printf(ptr @"#anonymous80", float %42)
-  %44 = load float, ptr %f32
+  %44 = load float, ptr %f32, align 4
   %45 = fmul float %44, 2.000000e+00
-  store float %45, ptr %f32
-  %46 = load float, ptr %f32
+  store float %45, ptr %f32, align 4
+  %46 = load float, ptr %f32, align 4
   %47 = call i64 (ptr, ...) @printf(ptr @"#anonymous81", float %46)
-  %48 = load float, ptr %f32
+  %48 = load float, ptr %f32, align 4
   %49 = fdiv float %48, 0x3FA99999A0000000
-  store float %49, ptr %f32
-  %50 = load float, ptr %f32
+  store float %49, ptr %f32, align 4
+  %50 = load float, ptr %f32, align 4
   %51 = call i64 (ptr, ...) @printf(ptr @"#anonymous82", float %50)
-  store double 0x3FC3333340000000, ptr %f64
-  %52 = load double, ptr %f64
+  store double 0x3FC3333340000000, ptr %f64, align 8
+  %52 = load double, ptr %f64, align 8
   %53 = fadd double %52, 0x3FB1EB8520000000
-  store double %53, ptr %f64
-  %54 = load double, ptr %f64
+  store double %53, ptr %f64, align 8
+  %54 = load double, ptr %f64, align 8
   %55 = call i64 (ptr, ...) @printf(ptr @"#anonymous83", double %54)
-  %56 = load double, ptr %f64
+  %56 = load double, ptr %f64, align 8
   %57 = fsub double %56, 0x3F947AE140000000
-  store double %57, ptr %f64
-  %58 = load double, ptr %f64
+  store double %57, ptr %f64, align 8
+  %58 = load double, ptr %f64, align 8
   %59 = call i64 (ptr, ...) @printf(ptr @"#anonymous84", double %58)
-  %60 = load double, ptr %f64
+  %60 = load double, ptr %f64, align 8
   %61 = fmul double %60, 2.000000e+00
-  store double %61, ptr %f64
-  %62 = load double, ptr %f64
+  store double %61, ptr %f64, align 8
+  %62 = load double, ptr %f64, align 8
   %63 = call i64 (ptr, ...) @printf(ptr @"#anonymous85", double %62)
-  %64 = load double, ptr %f64
+  %64 = load double, ptr %f64, align 8
   %65 = fdiv double %64, 5.000000e-01
-  store double %65, ptr %f64
-  %66 = load double, ptr %f64
+  store double %65, ptr %f64, align 8
+  %66 = load double, ptr %f64, align 8
   %67 = call i64 (ptr, ...) @printf(ptr @"#anonymous86", double %66)
   ret void
 }
@@ -435,13 +435,13 @@ define void @"Main.testMixed()=>(Void)"() {
 
 define void @"Main.testShift()=>(Void)"() {
 "#block4":
-  %i = alloca i32
-  store i32 128, ptr %i
-  %w = alloca i32
-  store i32 128, ptr %w
-  %0 = load i32, ptr %i
+  %i = alloca i32, align 4
+  store i32 128, ptr %i, align 4
+  %w = alloca i32, align 4
+  store i32 128, ptr %w, align 4
+  %0 = load i32, ptr %i, align 4
   %1 = ashr i32 %0, 1
-  %2 = load i32, ptr %w
+  %2 = load i32, ptr %w, align 4
   %3 = lshr i32 %2, 1
   ret void
 }

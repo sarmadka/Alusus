@@ -1,7 +1,7 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -10,25 +10,25 @@ target datalayout = "<sanitized>"
 
 define void @"testCastToParentRef()"() {
 "#block0":
-  %b = alloca ptr
-  %0 = load ptr, ptr %b
+  %b = alloca ptr, align 8
+  %0 = load ptr, ptr %b, align 8
   call void @"takeA(ref[A])"(ptr %0)
-  %1 = load ptr, ptr %b
+  %1 = load ptr, ptr %b, align 8
   call void @"takeA(ref[A])"(ptr %1)
   ret void
 }
 
 define void @"takeA(ref[A])"(ptr %r) {
 "#block1":
-  %r1 = alloca ptr
-  store ptr %r, ptr %r1
+  %r1 = alloca ptr, align 8
+  store ptr %r, ptr %r1, align 8
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %Aa = type { i32 }
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
@@ -41,20 +41,20 @@ target datalayout = "<sanitized>"
 
 define void @"testCustomCaster()"() {
 "#block0":
-  %cc = alloca %Cc
-  %dd = alloca %Dd
-  %"#temp0" = alloca %Aa
+  %cc = alloca %Cc, align 1
+  %dd = alloca %Dd, align 1
+  %"#temp0" = alloca %Aa, align 4
   call void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#temp0", ptr %cc)
   %0 = call ptr @"Dd.=(ref[Dd],ref[Aa])=>(ref[Dd])"(ptr %dd, ptr %"#temp0")
-  %"#temp1" = alloca %Aa
+  %"#temp1" = alloca %Aa, align 4
   call void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#temp1", ptr %cc)
   call void @"takeAa(ref[Aa])"(ptr %"#temp1")
-  %"#temp2" = alloca %Cc
-  %"#temp3" = alloca %Aa
+  %"#temp2" = alloca %Cc, align 1
+  %"#temp3" = alloca %Aa, align 4
   call void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#temp3", ptr %"#temp2")
   %1 = call ptr @"Dd.=(ref[Dd],ref[Aa])=>(ref[Dd])"(ptr %dd, ptr %"#temp3")
-  %"#temp4" = alloca %Cc
-  %"#temp5" = alloca %Aa
+  %"#temp4" = alloca %Cc, align 1
+  %"#temp5" = alloca %Aa, align 4
   call void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#temp5", ptr %"#temp4")
   call void @"takeAa(ref[Aa])"(ptr %"#temp5")
   ret void
@@ -62,35 +62,35 @@ define void @"testCustomCaster()"() {
 
 define void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#ret", ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   call void @"Aa.~init(ref[Aa],ref[Aa])"(ptr %"#ret", ptr @"!Cc.~cast(ref[Cc])=>(Aa).t")
   ret void
 }
 
 define ptr @"Dd.=(ref[Dd],ref[Aa])=>(ref[Dd])"(ptr %this, ptr %v) {
 "#block5":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %v2 = alloca ptr
-  store ptr %v, ptr %v2
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %v2 = alloca ptr, align 8
+  store ptr %v, ptr %v2, align 8
+  %0 = load ptr, ptr %this1, align 8
   ret ptr %0
 }
 
 define void @"takeAa(ref[Aa])"(ptr %t) {
 "#block6":
-  %t1 = alloca ptr
-  store ptr %t, ptr %t1
+  %t1 = alloca ptr, align 8
+  store ptr %t, ptr %t1, align 8
   ret void
 }
 
 define void @"Aa.~init(ref[Aa],ref[Aa])"(ptr %this, ptr %value) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %value2 = alloca ptr
-  store ptr %value, ptr %value2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %value2 = alloca ptr, align 8
+  store ptr %value, ptr %value2, align 8
   ret void
 }
 
@@ -102,15 +102,15 @@ define void @__constructor__1() {
 
 define void @"Aa.~init(ref[Aa])"(ptr %this) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %Aa = type { i32 }
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
@@ -122,12 +122,12 @@ target datalayout = "<sanitized>"
 
 define void @"testValueTypeCustomCaster()"() {
 "#block0":
-  %0 = alloca %Cc
+  %0 = alloca %Cc, align 1
   call void @"giveCc()=>(Cc)"(ptr sret(%Cc) %0)
-  %1 = load %Cc, ptr %0
-  %"#temp6" = alloca %Cc
-  store %Cc %1, ptr %"#temp6"
-  %"#temp7" = alloca %Aa
+  %1 = load %Cc, ptr %0, align 1
+  %"#temp6" = alloca %Cc, align 1
+  store %Cc %1, ptr %"#temp6", align 1
+  %"#temp7" = alloca %Aa, align 4
   call void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#temp7", ptr %"#temp6")
   call void @"takeAa(ref[Aa])"(ptr %"#temp7")
   ret void
@@ -135,33 +135,33 @@ define void @"testValueTypeCustomCaster()"() {
 
 define void @"giveCc()=>(Cc)"(ptr sret(%Cc) %__sret) {
 "#block1":
-  %"#temp8" = alloca %Cc
-  %0 = load %Cc, ptr %"#temp8"
-  store %Cc %0, ptr %__sret
+  %"#temp8" = alloca %Cc, align 1
+  %0 = load %Cc, ptr %"#temp8", align 1
+  store %Cc %0, ptr %__sret, align 1
   ret void
 }
 
 define void @"Cc.~cast(ref[Cc])=>(Aa)"(ptr %"#ret", ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   call void @"Aa.~init(ref[Aa],ref[Aa])"(ptr %"#ret", ptr @"!Cc.~cast(ref[Cc])=>(Aa).t")
   ret void
 }
 
 define void @"takeAa(ref[Aa])"(ptr %t) {
 "#block6":
-  %t1 = alloca ptr
-  store ptr %t, ptr %t1
+  %t1 = alloca ptr, align 8
+  store ptr %t, ptr %t1, align 8
   ret void
 }
 
 define void @"Aa.~init(ref[Aa],ref[Aa])"(ptr %this, ptr %value) {
 "#block3":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %value2 = alloca ptr
-  store ptr %value, ptr %value2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %value2 = alloca ptr, align 8
+  store ptr %value, ptr %value2, align 8
   ret void
 }
 
@@ -173,15 +173,15 @@ define void @__constructor__2() {
 
 define void @"Aa.~init(ref[Aa])"(ptr %this) {
 "#block5":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %ContainerB = type { ptr }
@@ -198,22 +198,22 @@ target datalayout = "<sanitized>"
 
 define void @"testMultiLevelCustomCaster()"() {
 "#block0":
-  %"#temp9" = alloca %ContainerB
+  %"#temp9" = alloca %ContainerB, align 8
   %0 = call ptr @"ContainerB.~cast(ref[ContainerB])=>(ref[B])"(ptr %"#temp9")
   call void @"takeA(ref[A])"(ptr %0)
-  %"#temp10" = alloca %ContainerC
-  %1 = alloca %ContainerA
+  %"#temp10" = alloca %ContainerC, align 1
+  %1 = alloca %ContainerA, align 4
   call void @"ContainerC.~cast(ref[ContainerC])=>(ContainerA)"(ptr sret(%ContainerA) %1, ptr %"#temp10")
-  %2 = load %ContainerA, ptr %1
-  %"#temp11" = alloca %ContainerA
-  store %ContainerA %2, ptr %"#temp11"
+  %2 = load %ContainerA, ptr %1, align 4
+  %"#temp11" = alloca %ContainerA, align 4
+  store %ContainerA %2, ptr %"#temp11", align 4
   %3 = call ptr @"ContainerA.~cast(ref[ContainerA])=>(ref[A])"(ptr %"#temp11")
   call void @"takeA(ref[A])"(ptr %3)
-  %"#temp12" = alloca %ContainerBb
+  %"#temp12" = alloca %ContainerBb, align 8
   %4 = call ptr @"ContainerBb.~cast(ref[ContainerBb])=>(ref[Bb])"(ptr %"#temp12")
   call void @"takeAa(ref[Aa])"(ptr %4)
-  %"#temp13" = alloca %ContainerCc
-  %"#temp14" = alloca %ContainerAa
+  %"#temp13" = alloca %ContainerCc, align 1
+  %"#temp14" = alloca %ContainerAa, align 4
   call void @"ContainerCc.~cast(ref[ContainerCc])=>(ContainerAa)"(ptr %"#temp14", ptr %"#temp13")
   %5 = call ptr @"ContainerAa.~cast(ref[ContainerAa])=>(ref[Aa])"(ptr %"#temp14")
   call void @"takeAa(ref[Aa])"(ptr %5)
@@ -222,62 +222,62 @@ define void @"testMultiLevelCustomCaster()"() {
 
 define ptr @"ContainerB.~cast(ref[ContainerB])=>(ref[B])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %ContainerB, ptr %0, i32 0, i32 0
-  %2 = load ptr, ptr %1
+  %2 = load ptr, ptr %1, align 8
   ret ptr %2
 }
 
 define void @"takeA(ref[A])"(ptr %r) {
 "#block2":
-  %r1 = alloca ptr
-  store ptr %r, ptr %r1
+  %r1 = alloca ptr, align 8
+  store ptr %r, ptr %r1, align 8
   ret void
 }
 
 define void @"ContainerC.~cast(ref[ContainerC])=>(ContainerA)"(ptr sret(%ContainerA) %__sret, ptr %this) {
 "#block3":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %"#temp15" = alloca %ContainerA
-  %0 = load %ContainerA, ptr %"#temp15"
-  store %ContainerA %0, ptr %__sret
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %"#temp15" = alloca %ContainerA, align 4
+  %0 = load %ContainerA, ptr %"#temp15", align 4
+  store %ContainerA %0, ptr %__sret, align 4
   ret void
 }
 
 define ptr @"ContainerA.~cast(ref[ContainerA])=>(ref[A])"(ptr %this) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %ContainerA, ptr %0, i32 0, i32 0
   ret ptr %1
 }
 
 define ptr @"ContainerBb.~cast(ref[ContainerBb])=>(ref[Bb])"(ptr %this) {
 "#block5":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %ContainerBb, ptr %0, i32 0, i32 0
-  %2 = load ptr, ptr %1
+  %2 = load ptr, ptr %1, align 8
   ret ptr %2
 }
 
 define void @"takeAa(ref[Aa])"(ptr %t) {
 "#block6":
-  %t1 = alloca ptr
-  store ptr %t, ptr %t1
+  %t1 = alloca ptr, align 8
+  store ptr %t, ptr %t1, align 8
   ret void
 }
 
 define void @"ContainerCc.~cast(ref[ContainerCc])=>(ContainerAa)"(ptr %"#ret", ptr %this) {
 "#block7":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %"#temp16" = alloca %ContainerAa
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %"#temp16" = alloca %ContainerAa, align 4
   call void @ContainerAa.__autoConstruct__(ptr %"#temp16")
   call void @"ContainerAa.~init(ref[ContainerAa])"(ptr %"#temp16")
   call void @ContainerAa.__autoConstruct__(ptr %"#ret")
@@ -287,9 +287,9 @@ define void @"ContainerCc.~cast(ref[ContainerCc])=>(ContainerAa)"(ptr %"#ret", p
 
 define ptr @"ContainerAa.~cast(ref[ContainerAa])=>(ref[Aa])"(ptr %this) {
 "#block12":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %ContainerAa, ptr %0, i32 0, i32 0
   ret ptr %1
 }
@@ -303,31 +303,31 @@ define void @ContainerAa.__autoConstruct__(ptr %this) {
 
 define void @"Aa.~init(ref[Aa])"(ptr %this) {
 "#block9":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"ContainerAa.~init(ref[ContainerAa])"(ptr %this) {
 "#block10":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"ContainerAa.~init(ref[ContainerAa],ref[ContainerAa])"(ptr %this, ptr %aa) {
 "#block11":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %aa2 = alloca ptr
-  store ptr %aa, ptr %aa2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %aa2 = alloca ptr, align 8
+  store ptr %aa, ptr %aa2, align 8
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Ee = type {}
@@ -339,10 +339,10 @@ target datalayout = "<sanitized>"
 
 define void @"testPrioritizingImplicitCast()"() {
 "#block0":
-  %"#temp17" = alloca %Ee
+  %"#temp17" = alloca %Ee, align 1
   call void @"Ee.~init(ref[Ee])"(ptr %"#temp17")
   call void @"takeEe(Ee)"(ptr %"#temp17")
-  %"#temp18" = alloca %Ff
+  %"#temp18" = alloca %Ff, align 1
   call void @"Ff.~init(ref[Ff])"(ptr %"#temp18")
   call void @"takeFf(Ff)"(ptr %"#temp18")
   ret void
@@ -350,28 +350,28 @@ define void @"testPrioritizingImplicitCast()"() {
 
 define void @"Ee.~init(ref[Ee])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"takeEe(Ee)"(ptr %ee) {
 "#block2":
-  %ee1 = alloca %Ee
+  %ee1 = alloca %Ee, align 1
   call void @"Ee.~init(ref[Ee],ref[Ee])"(ptr %ee1, ptr %ee)
   ret void
 }
 
 define void @"Ff.~init(ref[Ff])"(ptr %this) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"takeFf(Ff)"(ptr %ff) {
 "#block5":
-  %ff1 = alloca %Ff
+  %ff1 = alloca %Ff, align 1
   %0 = call ptr @"Ff.~cast(ref[Ff])=>(ptr[array[Word[8],1]])"(ptr %ff)
   call void @"Ff.~init(ref[Ff],ptr[array[Word[8],1]])"(ptr %ff1, ptr %0)
   ret void
@@ -379,26 +379,26 @@ define void @"takeFf(Ff)"(ptr %ff) {
 
 define void @"Ee.~init(ref[Ee],ref[Ee])"(ptr %this, ptr %str) {
 "#block3":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %str2 = alloca ptr
-  store ptr %str, ptr %str2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %str2 = alloca ptr, align 8
+  store ptr %str, ptr %str2, align 8
   ret void
 }
 
 define ptr @"Ff.~cast(ref[Ff])=>(ptr[array[Word[8],1]])"(ptr %this) {
 "#block6":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret ptr @"#anonymous0"
 }
 
 define void @"Ff.~init(ref[Ff],ptr[array[Word[8],1]])"(ptr %this, ptr %buf) {
 "#block7":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %buf2 = alloca ptr
-  store ptr %buf, ptr %buf2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %buf2 = alloca ptr, align 8
+  store ptr %buf, ptr %buf2, align 8
   ret void
 }
 ------------------------------------------------------------

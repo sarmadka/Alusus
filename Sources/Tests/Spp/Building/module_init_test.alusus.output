@@ -1,7 +1,7 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -11,13 +11,13 @@ target datalayout = "<sanitized>"
 
 define void @__entry__2() {
 "#block0":
-  store i32 7, ptr @"!Main.var"
+  store i32 7, ptr @"!Main.var", align 4
   ret void
 }
 
 define void @"Main.setVarTo2()"() {
 "#block1":
-  store i32 2, ptr @"!Main.var"
+  store i32 2, ptr @"!Main.var", align 4
   ret void
 }
 ------------------------------------------------------------

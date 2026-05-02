@@ -218,7 +218,6 @@ class JitEngineBuilderState
           llvm::orc::JITTargetMachineBuilder jtmb)>;
 
   public: std::unique_ptr<llvm::orc::ExecutionSession> es;
-  // `llvm::Optional` seems to be deprecated in modern LLVM versions. Using `std::optional` instead.
   public: std::optional<llvm::orc::JITTargetMachineBuilder> jtmb;
   public: ObjectLinkingLayerCreator createObjectLinkingLayer;
   public: CompileFunctionCreator createCompileFunction;
@@ -285,7 +284,6 @@ class JitEngineBuilderSetters
 
   /// Return a reference to the JITTargetMachineBuilder.
   ///
-  // `llvm::Optional` seems to be deprecated in modern LLVM versions. Using `std::optional` instead.
   public: std::optional<llvm::orc::JITTargetMachineBuilder>& getJITTargetMachineBuilder() {
     return impl().jtmb;
   }

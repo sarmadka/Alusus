@@ -4,7 +4,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %T = type { i32 }
@@ -14,28 +14,28 @@ target datalayout = "<sanitized>"
 
 define void @"test()"() {
 "#block0":
-  %a = alloca %T
+  %a = alloca %T, align 4
   call void @"T.~init(ref[T])"(ptr %a)
   call void @"T.~terminate(ref[T])"(ptr %a)
-  %pa = alloca ptr
-  %0 = load ptr, ptr %pa
+  %pa = alloca ptr, align 8
+  %0 = load ptr, ptr %pa, align 8
   call void @"T.~terminate(ref[T])"(ptr %0)
-  %i = alloca i32
+  %i = alloca i32, align 4
   call void @"T.~terminate(ref[T])"(ptr %a)
   ret void
 }
 
 define void @"T.~init(ref[T])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"T.~terminate(ref[T])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 ------------------------------------------------------------

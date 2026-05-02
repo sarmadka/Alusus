@@ -19,7 +19,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Main_Mt = type { i32 }
@@ -62,63 +62,63 @@ define i32 @"Main.main()=>(Int[32])"() {
   call void (ptr, ...) @"Main.f3(ptr[Word[8]],ArgPack[ptr[Word[8]],1,2])"(ptr @"#anonymous8", ptr @"#anonymous9", ptr @"#anonymous10")
   %0 = call i32 (i32, ...) @"Main.f5(Int[32],ArgPack[Int[32],0,0])=>(Int[32])"(i32 5, i32 1, i32 2, i32 -3, i32 7, i32 9)
   %1 = call i32 (i32, ...) @"Main.f5(Int[32],ArgPack[Int[32],0,0])=>(Int[32])"(i32 5, i32 1, i32 2, i32 -3, i32 7, i32 9)
-  %mt = alloca %Main_Mt
+  %mt = alloca %Main_Mt, align 4
   call void @"Main.Mt.~init(ref[Main.Mt])"(ptr %mt)
   call void (i32, ...) @"Main.f6(Int[32],ArgPack[any,0,0])"(i32 1, ptr %mt)
 }
 
 define void @"Main.f0(ptr[Word[8]],ArgPack[Int[32],0,0])"(ptr %a, ...) {
 "#block2":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
 define void @"Main.f1(ptr[Word[8]],ArgPack[any,0,0])"(ptr %a, ...) {
 "#block3":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
 define void @"Main.f2(ptr[Word[8]],ArgPack[any,1,0])"(ptr %a, ...) {
 "#block4":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
 define void @"Main.f3(ptr[Word[8]],ArgPack[ptr[Word[8]],1,2])"(ptr %a, ...) {
 "#block5":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
 define i32 @"Main.f5(Int[32],ArgPack[Int[32],0,0])=>(Int[32])"(i32 %count, ...) {
 "#block6":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %count1 = alloca i32
-  store i32 %count, ptr %count1
+  %count1 = alloca i32, align 4
+  store i32 %count, ptr %count1, align 4
   br label %"#block7"
 
 "#block7":                                        ; preds = %"#block11", %"#block6"
-  %0 = load i32, ptr %count1
+  %0 = load i32, ptr %count1, align 4
   %1 = sub nsw i32 %0, 1
-  store i32 %1, ptr %count1
+  store i32 %1, ptr %count1, align 4
   %2 = icmp sgt i32 %1, 0
   br i1 %2, label %"#block8", label %"#block9"
 
@@ -128,12 +128,12 @@ define i32 @"Main.f5(Int[32],ArgPack[Int[32],0,0])=>(Int[32])"(i32 %count, ...) 
   br i1 %4, label %"#block10", label %"#block11"
 
 "#block9":                                        ; preds = %"#block7"
-  %5 = load i32, ptr %count1
+  %5 = load i32, ptr %count1, align 4
   call void @llvm.va_end(ptr %__vaList)
   ret i32 %5
 
 "#block10":                                       ; preds = %"#block8"
-  %6 = load i32, ptr %count1
+  %6 = load i32, ptr %count1, align 4
   call void @llvm.va_end(ptr %__vaList)
   ret i32 %6
 
@@ -143,18 +143,18 @@ define i32 @"Main.f5(Int[32],ArgPack[Int[32],0,0])=>(Int[32])"(i32 %count, ...) 
 
 define void @"Main.Mt.~init(ref[Main.Mt])"(ptr %this) {
 "#block12":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   ret void
 }
 
 define void @"Main.f6(Int[32],ArgPack[any,0,0])"(i32 %count, ...) {
 "#block13":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %count1 = alloca i32
-  store i32 %count, ptr %count1
-  %mt = alloca %Main_Mt
+  %count1 = alloca i32, align 4
+  store i32 %count, ptr %count1, align 4
+  %mt = alloca %Main_Mt, align 4
   call void @"Main.Mt.~init(ref[Main.Mt])"(ptr %mt)
   %0 = va_arg ptr %__vaList, ptr
   %1 = call ptr @"Main.Mt.=(ref[Main.Mt],ref[Main.Mt])=>(ref[Main.Mt])"(ptr %mt, ptr %0)
@@ -170,46 +170,46 @@ declare void @llvm.va_end(ptr) #0
 
 define ptr @"Main.Mt.=(ref[Main.Mt],ref[Main.Mt])=>(ref[Main.Mt])"(ptr %this, ptr %r) {
 "#block14":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %r2 = alloca ptr
-  store ptr %r, ptr %r2
-  %0 = load ptr, ptr %r2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %r2 = alloca ptr, align 8
+  store ptr %r, ptr %r2, align 8
+  %0 = load ptr, ptr %r2, align 8
   %1 = getelementptr %Main_Mt, ptr %0, i32 0, i32 0
-  %2 = load ptr, ptr %this1
+  %2 = load ptr, ptr %this1, align 8
   %3 = getelementptr %Main_Mt, ptr %2, i32 0, i32 0
-  %4 = load i32, ptr %1
-  store i32 %4, ptr %3
-  %5 = load ptr, ptr %this1
+  %4 = load i32, ptr %1, align 4
+  store i32 %4, ptr %3, align 4
+  %5 = load ptr, ptr %this1, align 8
   ret ptr %5
 }
 
 define void @"Main.f1(ptr[Word[8]],ArgPack[Int[32],0,0])"(ptr %a, ...) {
 "#block15":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
 define void @"Main.f1(Int[32],ArgPack[any,0,0])"(i32 %a, ...) {
 "#block16":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca i32
-  store i32 %a, ptr %a1
+  %a1 = alloca i32, align 4
+  store i32 %a, ptr %a1, align 4
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
 define void @"Main.f4(ptr[Word[8]],ArgPack[Word[8],0,0])"(ptr %a, ...) {
 "#block17":
-  %__vaList = alloca %__VaList
+  %__vaList = alloca %__VaList, align 8
   call void @llvm.va_start(ptr %__vaList)
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   call void @llvm.va_end(ptr %__vaList)
   ret void
 }

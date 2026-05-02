@@ -181,11 +181,14 @@ JitEngine::JitEngine(JitEngineBuilderState &s, Error &err, Bool useOptimizeLayer
 
   if (s.numCompileThreads > 0) {
     compileLayer->setCloneToNewContextOnEmit(true);
-    
-    auto Dispatcher = std::make_shared<DynamicThreadPoolTaskDispatcher>();
 
-    es->setDispatchTask([Dispatcher](std::unique_ptr<Task> T) {
-      Dispatcher->dispatch(std::move(T));
+    compileThreads = std::make_unique<ThreadPool>(llvm::optimal_concurrency(s.numCompileThreads));
+
+    es->setDispatchTask([this](std::unique_ptr<llvm::orc::Task> T) {
+      auto SharedTask = std::shared_ptr<llvm::orc::Task>(std::move(T));
+      compileThreads->async([SharedTask]() {
+        SharedTask->run();
+      });
     });
   }
 
@@ -230,7 +233,7 @@ JitEngine::createOptimizeLayer(llvm::orc::IRLayer &prevLayer) {
         llvm::OptimizationLevel O3 = llvm::OptimizationLevel::O3;
         mpm = pb.buildPerModuleDefaultPipeline(O3);
 
-        mpm.addPass(llvm::VerifierPass()); // keep this too
+        mpm.addPass(llvm::VerifierPass());
 
         mpm.run(module, mam);
       });

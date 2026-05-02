@@ -1,7 +1,7 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %Outer = type { %Inner, i32 }
 %Inner = type { ptr, i32 }
@@ -17,28 +17,28 @@ target datalayout = "<sanitized>"
 
 define void @"test()"() {
 "#block0":
-  %0 = load ptr, ptr @"!o"
+  %0 = load ptr, ptr @"!o", align 8
   %1 = getelementptr %InnerMost, ptr %0, i32 0, i32 0
-  %2 = load i32, ptr %1
-  %3 = load i32, ptr getelementptr (%Inner, ptr @"!o", i32 0, i32 1)
-  %4 = load i32, ptr getelementptr inbounds (%Outer, ptr @"!o", i32 0, i32 1)
+  %2 = load i32, ptr %1, align 4
+  %3 = load i32, ptr getelementptr (%Inner, ptr @"!o", i32 0, i32 1), align 4
+  %4 = load i32, ptr getelementptr inbounds (%Outer, ptr @"!o", i32 0, i32 1), align 4
   %5 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %2, i32 %3, i32 %4)
-  %6 = load ptr, ptr @"!o"
+  %6 = load ptr, ptr @"!o", align 8
   %7 = getelementptr %InnerMost, ptr %6, i32 0, i32 0
-  store i32 1, ptr %7
-  store i32 2, ptr getelementptr (%Inner, ptr @"!o", i32 0, i32 1)
-  %8 = load ptr, ptr @"!o"
+  store i32 1, ptr %7, align 4
+  store i32 2, ptr getelementptr (%Inner, ptr @"!o", i32 0, i32 1), align 4
+  %8 = load ptr, ptr @"!o", align 8
   %9 = call i32 @"InnerMost.getA()(ref[InnerMost])=>(Int[32])"(ptr %8)
   %10 = call i32 @"Inner.getI()(ref[Inner])=>(Int[32])"(ptr @"!o")
   %11 = call i32 @"Inner.()(ref[Inner])=>(Int[32])"(ptr @"!o")
   %12 = call i32 (ptr, ...) @printf(ptr @"#anonymous1", i32 %9, i32 %10, i32 %11)
-  store i32 4, ptr getelementptr inbounds (%Outer, ptr @"!o", i32 0, i32 1)
-  %13 = load ptr, ptr @"!o"
+  store i32 4, ptr getelementptr inbounds (%Outer, ptr @"!o", i32 0, i32 1), align 4
+  %13 = load ptr, ptr @"!o", align 8
   %14 = call ptr @"InnerMost.=(ref[InnerMost],Int[32])=>(ref[InnerMost])"(ptr %13, i32 17)
   %15 = call ptr @"getO()=>(ref[Outer])"()
   %16 = getelementptr %Outer, ptr %15, i32 0, i32 0
   %17 = getelementptr %Inner, ptr %16, i32 0, i32 0
-  %18 = load ptr, ptr %17
+  %18 = load ptr, ptr %17, align 8
   %19 = call i32 @"InnerMost.getA()(ref[InnerMost])=>(Int[32])"(ptr %18)
   %20 = call ptr @"getO()=>(ref[Outer])"()
   %21 = getelementptr %Outer, ptr %20, i32 0, i32 0
@@ -51,8 +51,8 @@ define void @"test()"() {
   %28 = call ptr @"getO()=>(ref[Outer])"()
   %29 = getelementptr %Outer, ptr %28, i32 0, i32 0
   %30 = call i32 @"Inner.()(ref[Inner])=>(Int[32])"(ptr %29)
-  %31 = load i32, ptr %25
-  %32 = load i32, ptr %27
+  %31 = load i32, ptr %25, align 4
+  %32 = load i32, ptr %27, align 4
   %33 = call i32 (ptr, ...) @printf(ptr @"#anonymous2", i32 %19, i32 %22, i32 %31, i32 %32, i32 %30)
   ret void
 }
@@ -61,46 +61,46 @@ declare i32 @printf(ptr, ...)
 
 define i32 @"InnerMost.getA()(ref[InnerMost])=>(Int[32])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %InnerMost, ptr %0, i32 0, i32 0
-  %2 = load i32, ptr %1
+  %2 = load i32, ptr %1, align 4
   ret i32 %2
 }
 
 define i32 @"Inner.getI()(ref[Inner])=>(Int[32])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %Inner, ptr %0, i32 0, i32 1
-  %2 = load i32, ptr %1
+  %2 = load i32, ptr %1, align 4
   ret i32 %2
 }
 
 define i32 @"Inner.()(ref[Inner])=>(Int[32])"(ptr %this) {
 "#block3":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %Inner, ptr %0, i32 0, i32 1
-  %2 = load i32, ptr %1
+  %2 = load i32, ptr %1, align 4
   %3 = mul nsw i32 %2, 2
   ret i32 %3
 }
 
 define ptr @"InnerMost.=(ref[InnerMost],Int[32])=>(ref[InnerMost])"(ptr %this, i32 %value) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %value2 = alloca i32
-  store i32 %value, ptr %value2
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %value2 = alloca i32, align 4
+  store i32 %value, ptr %value2, align 4
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %InnerMost, ptr %0, i32 0, i32 0
-  %2 = load i32, ptr %value2
-  store i32 %2, ptr %1
-  %3 = load ptr, ptr %this1
+  %2 = load i32, ptr %value2, align 4
+  store i32 %2, ptr %1, align 4
+  %3 = load ptr, ptr %this1, align 8
   ret ptr %3
 }
 
@@ -119,14 +119,14 @@ define void @Outer.__autoConstruct__(ptr %this) {
 "#block7":
   %0 = getelementptr %Outer, ptr %this, i32 0, i32 0
   %1 = getelementptr %Inner, ptr %0, i32 0, i32 0
-  %2 = load ptr, ptr %1
+  %2 = load ptr, ptr %1, align 8
   %3 = getelementptr %InnerMost, ptr %2, i32 0, i32 0
-  store i32 6, ptr %3
+  store i32 6, ptr %3, align 4
   %4 = getelementptr %Outer, ptr %this, i32 0, i32 0
   %5 = getelementptr %Inner, ptr %4, i32 0, i32 1
-  store i32 7, ptr %5
+  store i32 7, ptr %5, align 4
   %6 = getelementptr %Outer, ptr %this, i32 0, i32 1
-  store i32 8, ptr %6
+  store i32 8, ptr %6, align 4
   ret void
 }
 ------------------------------------------------------------

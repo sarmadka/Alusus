@@ -1,7 +1,7 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -14,10 +14,10 @@ target datalayout = "<sanitized>"
 
 define void @"testNoReturn()"() {
 "#block0":
-  %a = alloca %A
+  %a = alloca %A, align 4
   call void @"A.~init(ref[A])"(ptr %a)
   %0 = getelementptr %A, ptr %a, i32 0, i32 0
-  %1 = load i32, ptr %0
+  %1 = load i32, ptr %0, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
   call void @"A.~terminate(ref[A])"(ptr %a)
   ret void
@@ -25,12 +25,12 @@ define void @"testNoReturn()"() {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous1")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -38,11 +38,11 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous2")
   ret void
 }
@@ -50,7 +50,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -63,10 +63,10 @@ target datalayout = "<sanitized>"
 
 define void @"testReturnVoid()"() {
 "#block0":
-  %a = alloca %A
+  %a = alloca %A, align 4
   call void @"A.~init(ref[A])"(ptr %a)
   %0 = getelementptr %A, ptr %a, i32 0, i32 0
-  %1 = load i32, ptr %0
+  %1 = load i32, ptr %0, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
   call void @"A.~terminate(ref[A])"(ptr %a)
   ret void
@@ -74,12 +74,12 @@ define void @"testReturnVoid()"() {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous1")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -87,11 +87,11 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous2")
   ret void
 }
@@ -99,7 +99,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -112,25 +112,25 @@ target datalayout = "<sanitized>"
 
 define i32 @"testReturnNonVoid()=>(Int[32])"() {
 "#block0":
-  %a = alloca %A
+  %a = alloca %A, align 4
   call void @"A.~init(ref[A])"(ptr %a)
   %0 = getelementptr %A, ptr %a, i32 0, i32 0
-  %1 = load i32, ptr %0
+  %1 = load i32, ptr %0, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
   %3 = getelementptr %A, ptr %a, i32 0, i32 0
-  %4 = load i32, ptr %3
+  %4 = load i32, ptr %3, align 4
   call void @"A.~terminate(ref[A])"(ptr %a)
   ret i32 %4
 }
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous1")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -138,11 +138,11 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous2")
   ret void
 }
@@ -150,7 +150,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -165,7 +165,7 @@ target datalayout = "<sanitized>"
 
 define void @"testReturnA()"() {
 "#block0":
-  %"#temp0" = alloca %A
+  %"#temp0" = alloca %A, align 4
   call void @"getA()=>(A)"(ptr %"#temp0")
   call void @"A.~terminate(ref[A])"(ptr %"#temp0")
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous0")
@@ -174,7 +174,7 @@ define void @"testReturnA()"() {
 
 define void @"getA()=>(A)"(ptr %"#ret") {
 "#block1":
-  %a = alloca %A
+  %a = alloca %A, align 4
   call void @"A.~init(ref[A])"(ptr %a)
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous1")
   call void @"A.~init(ref[A],ref[A])"(ptr %"#ret", ptr %a)
@@ -184,11 +184,11 @@ define void @"getA()=>(A)"(ptr %"#ret") {
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous4")
   ret void
 }
@@ -197,36 +197,36 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous2")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
 define void @"A.~init(ref[A],ref[A])"(ptr %this, ptr %that) {
 "#block3":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %that2 = alloca ptr
-  store ptr %that, ptr %that2
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %that2 = alloca ptr, align 8
+  store ptr %that, ptr %that2, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous3")
-  %1 = load ptr, ptr %that2
+  %1 = load ptr, ptr %that2, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  %3 = load i32, ptr %2
+  %3 = load i32, ptr %2, align 4
   %4 = mul nsw i32 %3, 2
-  %5 = load ptr, ptr %this1
+  %5 = load ptr, ptr %this1, align 8
   %6 = getelementptr %A, ptr %5, i32 0, i32 0
-  store i32 %4, ptr %6
+  store i32 %4, ptr %6, align 4
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -240,24 +240,24 @@ target datalayout = "<sanitized>"
 
 define void @"testLoop()"() {
 "#block0":
-  %i = alloca i32
-  store i32 2, ptr %i
-  %a = alloca %A
+  %i = alloca i32, align 4
+  store i32 2, ptr %i, align 4
+  %a = alloca %A, align 4
   br label %"#block1"
 
 "#block1":                                        ; preds = %"#block2", %"#block0"
-  %0 = load i32, ptr %i
+  %0 = load i32, ptr %i, align 4
   %1 = icmp sgt i32 %0, 0
   br i1 %1, label %"#block2", label %"#block3"
 
 "#block2":                                        ; preds = %"#block1"
   call void @"A.~init(ref[A])"(ptr %a)
   %2 = getelementptr %A, ptr %a, i32 0, i32 0
-  %3 = load i32, ptr %2
+  %3 = load i32, ptr %2, align 4
   %4 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %3)
-  %5 = load i32, ptr %i
+  %5 = load i32, ptr %i, align 4
   %6 = sub nsw i32 %5, 1
-  store i32 %6, ptr %i
+  store i32 %6, ptr %i, align 4
   call void @"A.~terminate(ref[A])"(ptr %a)
   br label %"#block1"
 
@@ -268,12 +268,12 @@ define void @"testLoop()"() {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous2")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -281,11 +281,11 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block5":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous3")
   ret void
 }
@@ -293,7 +293,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -310,7 +310,7 @@ target datalayout = "<sanitized>"
 
 define void @"testBreak()"() {
 "#block0":
-  %a = alloca %A
+  %a = alloca %A, align 4
   br label %"#block1"
 
 "#block1":                                        ; preds = %"#block5", %"#block0"
@@ -319,13 +319,13 @@ define void @"testBreak()"() {
 "#block2":                                        ; preds = %"#block1"
   call void @"A.~init(ref[A])"(ptr %a)
   %0 = getelementptr %A, ptr %a, i32 0, i32 0
-  %1 = load i32, ptr %0
+  %1 = load i32, ptr %0, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
   br i1 true, label %"#block4", label %"#block5"
 
 "#block3":                                        ; preds = %"#block1", %"#block4"
-  %a1 = alloca %A
-  %b = alloca %A
+  %a1 = alloca %A, align 4
+  %b = alloca %A, align 4
   br label %"#block6"
 
 "#block4":                                        ; preds = %"#block2"
@@ -355,8 +355,8 @@ define void @"testBreak()"() {
   call void @"A.~init(ref[A])"(ptr %b)
   %5 = getelementptr %A, ptr %a1, i32 0, i32 0
   %6 = getelementptr %A, ptr %b, i32 0, i32 0
-  %7 = load i32, ptr %5
-  %8 = load i32, ptr %6
+  %7 = load i32, ptr %5, align 4
+  %8 = load i32, ptr %6, align 4
   %9 = call i32 (ptr, ...) @printf(ptr @"#anonymous2", i32 %7, i32 %8)
   call void @"A.~terminate(ref[A])"(ptr %a1)
   call void @"A.~terminate(ref[A])"(ptr %b)
@@ -370,12 +370,12 @@ define void @"testBreak()"() {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block12":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous5")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -383,11 +383,11 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block13":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous6")
   ret void
 }
@@ -395,7 +395,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -412,35 +412,35 @@ target datalayout = "<sanitized>"
 
 define void @"testContinue()"() {
 "#block0":
-  %i = alloca i32
-  store i32 0, ptr %i
-  %a = alloca %A
+  %i = alloca i32, align 4
+  store i32 0, ptr %i, align 4
+  %a = alloca %A, align 4
   br label %"#block1"
 
 "#block1":                                        ; preds = %"#block2", %"#block0"
-  %0 = load i32, ptr %i
+  %0 = load i32, ptr %i, align 4
   %1 = icmp slt i32 %0, 1
   br i1 %1, label %"#block3", label %"#block4"
 
 "#block2":                                        ; preds = %"#block6", %"#block5"
-  %2 = load i32, ptr %i
+  %2 = load i32, ptr %i, align 4
   %3 = add nsw i32 %2, 1
-  store i32 %3, ptr %i
+  store i32 %3, ptr %i, align 4
   br label %"#block1"
 
 "#block3":                                        ; preds = %"#block1"
   call void @"A.~init(ref[A])"(ptr %a)
   %4 = getelementptr %A, ptr %a, i32 0, i32 0
-  %5 = load i32, ptr %4
+  %5 = load i32, ptr %4, align 4
   %6 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %5)
-  %7 = load i32, ptr %i
+  %7 = load i32, ptr %i, align 4
   %8 = icmp eq i32 %7, 0
   br i1 %8, label %"#block5", label %"#block6"
 
 "#block4":                                        ; preds = %"#block1"
-  store i32 0, ptr %i
-  %a1 = alloca %A
-  %b = alloca %A
+  store i32 0, ptr %i, align 4
+  %a1 = alloca %A, align 4
+  %b = alloca %A, align 4
   br label %"#block7"
 
 "#block5":                                        ; preds = %"#block3"
@@ -453,14 +453,14 @@ define void @"testContinue()"() {
   br label %"#block2"
 
 "#block7":                                        ; preds = %"#block8", %"#block4"
-  %10 = load i32, ptr %i
+  %10 = load i32, ptr %i, align 4
   %11 = icmp slt i32 %10, 1
   br i1 %11, label %"#block9", label %"#block10"
 
 "#block8":                                        ; preds = %"#block13", %"#block12"
-  %12 = load i32, ptr %i
+  %12 = load i32, ptr %i, align 4
   %13 = add nsw i32 %12, 1
-  store i32 %13, ptr %i
+  store i32 %13, ptr %i, align 4
   br label %"#block7"
 
 "#block9":                                        ; preds = %"#block7"
@@ -478,8 +478,8 @@ define void @"testContinue()"() {
   call void @"A.~init(ref[A])"(ptr %b)
   %15 = getelementptr %A, ptr %a1, i32 0, i32 0
   %16 = getelementptr %A, ptr %b, i32 0, i32 0
-  %17 = load i32, ptr %15
-  %18 = load i32, ptr %16
+  %17 = load i32, ptr %15, align 4
+  %18 = load i32, ptr %16, align 4
   %19 = call i32 (ptr, ...) @printf(ptr @"#anonymous2", i32 %17, i32 %18)
   call void @"A.~terminate(ref[A])"(ptr %a1)
   call void @"A.~terminate(ref[A])"(ptr %b)
@@ -493,12 +493,12 @@ define void @"testContinue()"() {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block14":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous5")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -506,11 +506,11 @@ declare i32 @printf(ptr, ...)
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block15":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous6")
   ret void
 }
@@ -518,7 +518,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %B = type { %A, %A }
@@ -532,14 +532,14 @@ target datalayout = "<sanitized>"
 
 define void @"testAutoInit()"() {
 "#block0":
-  %b = alloca %B
+  %b = alloca %B, align 4
   call void @B.__autoConstruct__(ptr %b)
   %0 = getelementptr %B, ptr %b, i32 0, i32 0
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
   %2 = getelementptr %B, ptr %b, i32 0, i32 1
   %3 = getelementptr %A, ptr %2, i32 0, i32 0
-  %4 = load i32, ptr %1
-  %5 = load i32, ptr %3
+  %4 = load i32, ptr %1, align 4
+  %5 = load i32, ptr %3, align 4
   %6 = call i32 (ptr, ...) @printf(ptr @"#anonymous1", i32 %4, i32 %5)
   call void @B.__autoDestruct__(ptr %b)
   ret void
@@ -556,12 +556,12 @@ define void @B.__autoConstruct__(ptr %this) {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous0")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
@@ -578,11 +578,11 @@ define void @B.__autoDestruct__(ptr %this) {
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block4":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous2")
   ret void
 }
@@ -590,7 +590,7 @@ define void @"A.~terminate(ref[A])"(ptr %this) {
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %C = type { i32 }
@@ -602,10 +602,10 @@ target datalayout = "<sanitized>"
 
 define void @"testInlinedInit()"() {
 "#block0":
-  %gc = alloca %C
+  %gc = alloca %C, align 4
   call void @C.__autoConstruct__(ptr %gc)
   %0 = getelementptr %C, ptr %gc, i32 0, i32 0
-  %1 = load i32, ptr %0
+  %1 = load i32, ptr %0, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous1", i32 %1)
   ret void
 }
@@ -614,7 +614,7 @@ define void @C.__autoConstruct__(ptr %this) {
 "#block1":
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous0")
   %1 = getelementptr %C, ptr %this, i32 0, i32 0
-  store i32 3, ptr %1
+  store i32 3, ptr %1, align 4
   ret void
 }
 
@@ -626,7 +626,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
@@ -638,9 +638,9 @@ target datalayout = "<sanitized>"
 
 define void @"testMissingAssignOp()"() {
 "#block0":
-  %a1 = alloca %A
+  %a1 = alloca %A, align 4
   call void @"A.~init(ref[A])"(ptr %a1)
-  %a2 = alloca %A
+  %a2 = alloca %A, align 4
   call void @"A.~init(ref[A])"(ptr %a2)
   call void @"A.~terminate(ref[A])"(ptr %a1)
   call void @"A.~terminate(ref[A])"(ptr %a2)
@@ -649,22 +649,22 @@ define void @"testMissingAssignOp()"() {
 
 define void @"A.~init(ref[A])"(ptr %this) {
 "#block1":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
   %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous0")
-  %1 = load ptr, ptr %this1
+  %1 = load ptr, ptr %this1, align 8
   %2 = getelementptr %A, ptr %1, i32 0, i32 0
-  store i32 1, ptr %2
+  store i32 1, ptr %2, align 4
   ret void
 }
 
 define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca ptr
-  store ptr %this, ptr %this1
-  %0 = load ptr, ptr %this1
+  %this1 = alloca ptr, align 8
+  store ptr %this, ptr %this1, align 8
+  %0 = load ptr, ptr %this1, align 8
   %1 = getelementptr %A, ptr %0, i32 0, i32 0
-  store i32 0, ptr %1
+  store i32 0, ptr %1, align 4
   %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous1")
   ret void
 }

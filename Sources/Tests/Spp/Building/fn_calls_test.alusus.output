@@ -12,7 +12,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -30,10 +30,10 @@ define void @__entry__2() {
 
 define i64 @"Main.main(Int[64],Float[64])=>(Int[64])"(i64 %a, double %b) {
 "#block1":
-  %a1 = alloca i64
-  store i64 %a, ptr %a1
-  %b2 = alloca double
-  store double %b, ptr %b2
+  %a1 = alloca i64, align 8
+  store i64 %a, ptr %a1, align 8
+  %b2 = alloca double, align 8
+  store double %b, ptr %b2, align 8
   call void @"Main.g()"()
   call void @"Main.h(ptr[Word[8]])"(ptr @"#anonymous0")
   call void @hh(ptr @"#anonymous1", ptr @"#anonymous2")
@@ -49,31 +49,31 @@ define void @"Main.g()"() {
 
 define void @"Main.h(ptr[Word[8]])"(ptr %a) {
 "#block3":
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   ret void
 }
 
 define void @hh(ptr %a, ptr %b) {
 "#block4":
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
-  %b2 = alloca ptr
-  store ptr %b, ptr %b2
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
+  %b2 = alloca ptr, align 8
+  store ptr %b, ptr %b2, align 8
   ret void
 }
 
 define void @"Other.f(Int[32])"(i32 %a) {
 "#block5":
-  %a1 = alloca i32
-  store i32 %a, ptr %a1
+  %a1 = alloca i32, align 4
+  store i32 %a, ptr %a1, align 4
   ret void
 }
 
 define void @"Other.f(ptr[Word[8]])"(ptr %a) {
 "#block6":
-  %a1 = alloca ptr
-  store ptr %a, ptr %a1
+  %a1 = alloca ptr, align 8
+  store ptr %a, ptr %a1, align 8
   ret void
 }
 
@@ -84,10 +84,10 @@ define void @"Other.Nested.g()=>(Void)"() {
 
 define void @"Main.f(Int[32],Float[32])"(i32 %a, float %b) {
 "#block8":
-  %a1 = alloca i32
-  store i32 %a, ptr %a1
-  %b2 = alloca float
-  store float %b, ptr %b2
+  %a1 = alloca i32, align 4
+  store i32 %a, ptr %a1, align 4
+  %b2 = alloca float, align 4
+  store float %b, ptr %b2, align 4
   ret void
 }
 

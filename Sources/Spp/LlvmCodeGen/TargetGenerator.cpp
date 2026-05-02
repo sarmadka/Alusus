@@ -1146,6 +1146,7 @@ Bool TargetGenerator::generateFunctionPointer(
 
   llvm::Function *llvmFunc = llvmMod->getFunction(funcWrapper->getName().getBuf());
   if (llvmFunc == nullptr) {
+    // This function is in a different module, so we'll have to declare it.
     llvmFunc = llvm::Function::Create(
       funcWrapper->getFunctionType()->getLlvmFunctionType(),
       llvm::Function::ExternalLinkage,
@@ -1153,6 +1154,8 @@ Bool TargetGenerator::generateFunctionPointer(
       llvmMod
     );
 
+    // C ABI compatibility:
+    // Add sret attribute for struct return type which is passed as first pointer parameter.
     auto retType = funcWrapper->getFunctionType()->getRetType();
     Int paramOffset = 0;
     if (retType->getLlvmType()->isStructTy()) {
@@ -1167,6 +1170,9 @@ Bool TargetGenerator::generateFunctionPointer(
       paramOffset = 1;
     }
 
+    // C ABI compatibility:
+    // Add byval and align attributes for struct parameters which will
+    // be passed by pointer.
     auto argTypes = funcWrapper->getFunctionType()->getArgs();
     for (Int i = 0; i < argTypes->getElementCount(); ++i) {
       auto argType = argTypes->getElement(i);
@@ -1189,6 +1195,7 @@ Bool TargetGenerator::generateFunctionPointer(
     }
   }
 
+  // Generate the func pointer.
   auto llvmResult = llvm::ConstantExpr::getBitCast(
     llvmFunc,
     functionPtrTypeWrapper->getLlvmType()
@@ -1485,6 +1492,7 @@ Bool TargetGenerator::generateReturn(
 
     llvm::Function *llvmVaEndFunc = llvmModule->getFunction("llvm.va_end");
     if (llvmVaEndFunc == nullptr) {
+      // This function is in a different module, so we'll have to declare it.
       llvmVaEndFunc = llvm::Function::Create(
         this->getVaStartEndFnType(),
         llvm::Function::ExternalLinkage,
@@ -1511,7 +1519,8 @@ Bool TargetGenerator::generateReturn(
     PREPARE_ARG(retVal, retValBox, Value);
     llvm::Value *llvmRetVal = retValBox->getLlvmValue();
 
-    // Struct return via sret pointer
+    // C ABI compatibility:
+    // If return type is a struct, store the result to sret pointer and return void.
     if (llvmRetVal->getType()->isStructTy()) {
       if (block->getFunction()->llvmSretPtr != nullptr) {
         auto storeInst = builder->CreateStore(llvmRetVal, block->getFunction()->llvmSretPtr);
@@ -1640,13 +1649,11 @@ Bool TargetGenerator::generateAdd(
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto llvmResult = builder->CreateFAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<PointerType>()) {
+  } else if (tgType->isDerivedFrom<PointerType>()) {
     auto ptrType = static_cast<PointerType*>(tgType);
     auto elemTy = ptrType->getContentType()->getLlvmType();
 
@@ -1682,13 +1689,11 @@ Bool TargetGenerator::generateSub(
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto llvmResult = builder->CreateFSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<PointerType>()) {
+  } else if (tgType->isDerivedFrom<PointerType>()) {
     auto ptrType = static_cast<PointerType*>(tgType);
     auto elemTy = ptrType->getContentType()->getLlvmType();
 
@@ -1725,8 +1730,7 @@ Bool TargetGenerator::generateMul(
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto llvmResult = builder->CreateFMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
@@ -1755,8 +1759,7 @@ Bool TargetGenerator::generateDiv(
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto llvmResult = builder->CreateFDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
@@ -1785,8 +1788,7 @@ Bool TargetGenerator::generateRem(
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto llvmResult = builder->CreateFRem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
@@ -1919,8 +1921,7 @@ Bool TargetGenerator::generateNeg(
     auto llvmResult = builder->CreateNeg(srcValBox->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto llvmResult = builder->CreateFNeg(srcValBox->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
@@ -1948,8 +1949,7 @@ Bool TargetGenerator::generateEarlyInc(
     llvmResult = integerType->isSigned()
       ? builder->CreateNSWAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
       : builder->CreateAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
     llvmResult = builder->CreateFAdd(
       llvmVal,
@@ -1957,8 +1957,7 @@ Bool TargetGenerator::generateEarlyInc(
         ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
         : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
     );
-  }
-  else {
+  } else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
 
@@ -1987,8 +1986,7 @@ Bool TargetGenerator::generateEarlyDec(
     llvmResult = integerType->isSigned()
       ? builder->CreateNSWSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
       : builder->CreateSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
     llvmResult = builder->CreateFSub(
       llvmVal,
@@ -1996,8 +1994,7 @@ Bool TargetGenerator::generateEarlyDec(
         ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
         : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
     );
-  }
-  else {
+  } else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
 
@@ -2026,8 +2023,7 @@ Bool TargetGenerator::generateLateInc(
     llvmResult = integerType->isSigned()
       ? builder->CreateNSWAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
       : builder->CreateAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
     llvmResult = builder->CreateFAdd(
       llvmVal,
@@ -2035,8 +2031,7 @@ Bool TargetGenerator::generateLateInc(
         ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
         : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
     );
-  }
-  else {
+  } else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
 
@@ -2065,8 +2060,7 @@ Bool TargetGenerator::generateLateDec(
     llvmResult = integerType->isSigned()
       ? builder->CreateNSWSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
       : builder->CreateSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
-  }
-  else if (tgType->isDerivedFrom<FloatType>()) {
+  } else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
     llvmResult = builder->CreateFSub(
       llvmVal,
@@ -2074,8 +2068,7 @@ Bool TargetGenerator::generateLateDec(
         ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
         : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
     );
-  }
-  else {
+  } else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
 

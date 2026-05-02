@@ -1,7 +1,7 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -23,9 +23,9 @@ define void @__anonymousfunc__0() {
 
 define void @"callFunc(ptr[()])"(ptr %fp) {
 "#block2":
-  %fp1 = alloca ptr
-  store ptr %fp, ptr %fp1
-  %0 = load ptr, ptr %fp1
+  %fp1 = alloca ptr, align 8
+  store ptr %fp, ptr %fp1, align 8
+  %0 = load ptr, ptr %fp1, align 8
   call void %0()
   ret void
 }
@@ -35,7 +35,7 @@ declare i64 @printf(ptr, ...)
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -57,9 +57,9 @@ define void @"testNamedInExp().0.namedFunc()"() {
 
 define void @"callFunc(ptr[()])"(ptr %fp) {
 "#block2":
-  %fp1 = alloca ptr
-  store ptr %fp, ptr %fp1
-  %0 = load ptr, ptr %fp1
+  %fp1 = alloca ptr, align 8
+  store ptr %fp, ptr %fp1, align 8
+  %0 = load ptr, ptr %fp1, align 8
   call void %0()
   ret void
 }
@@ -72,7 +72,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -82,8 +82,8 @@ target datalayout = "<sanitized>"
 
 define void @"testAccessingOwnerVars()"() {
 "#block0":
-  %i = alloca i32
-  store i32 5, ptr %i
+  %i = alloca i32, align 4
+  store i32 5, ptr %i, align 4
   call void @"callFunc(ptr[()])"(ptr @__anonymousfunc__1)
   ret void
 }
@@ -95,9 +95,9 @@ define void @__anonymousfunc__1() {
 
 define void @"callFunc(ptr[()])"(ptr %fp) {
 "#block2":
-  %fp1 = alloca ptr
-  store ptr %fp, ptr %fp1
-  %0 = load ptr, ptr %fp1
+  %fp1 = alloca ptr, align 8
+  store ptr %fp, ptr %fp1, align 8
+  %0 = load ptr, ptr %fp1, align 8
   call void %0()
   ret void
 }

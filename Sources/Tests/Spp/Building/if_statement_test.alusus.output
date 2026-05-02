@@ -4,7 +4,7 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "<sanitized>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 
 %LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
@@ -31,9 +31,9 @@ declare i64 @printf(ptr, ...)
 
 define void @"Main.print(ptr[Word[8]])=>(Void)"(ptr %str) {
 "#block1":
-  %str1 = alloca ptr
-  store ptr %str, ptr %str1
-  %0 = load ptr, ptr %str1
+  %str1 = alloca ptr, align 8
+  store ptr %str, ptr %str1, align 8
+  %0 = load ptr, ptr %str1, align 8
   %1 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", ptr %0)
   ret void
 }
@@ -47,9 +47,9 @@ define void @"Main.main()=>(Void)"() {
 
 define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
 "#block3":
-  %i1 = alloca i1
-  store i1 %i, ptr %i1
-  %0 = load i1, ptr %i1
+  %i1 = alloca i1, align 1
+  store i1 %i, ptr %i1, align 1
+  %0 = load i1, ptr %i1, align 1
   br i1 %0, label %"#block4", label %"#block5"
 
 "#block4":                                        ; preds = %"#block3"
@@ -57,7 +57,7 @@ define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
   br label %"#block5"
 
 "#block5":                                        ; preds = %"#block3", %"#block4"
-  %1 = load i1, ptr %i1
+  %1 = load i1, ptr %i1, align 1
   br i1 %1, label %"#block6", label %"#block7"
 
 "#block6":                                        ; preds = %"#block5"
@@ -65,7 +65,7 @@ define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
   br label %"#block7"
 
 "#block7":                                        ; preds = %"#block5", %"#block6"
-  %2 = load i1, ptr %i1
+  %2 = load i1, ptr %i1, align 1
   br i1 %2, label %"#block8", label %"#block9"
 
 "#block8":                                        ; preds = %"#block7"
@@ -77,7 +77,7 @@ define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
   br label %"#block10"
 
 "#block10":                                       ; preds = %"#block9", %"#block8"
-  %3 = load i1, ptr %i1
+  %3 = load i1, ptr %i1, align 1
   br i1 %3, label %"#block11", label %"#block12"
 
 "#block11":                                       ; preds = %"#block10"
@@ -89,7 +89,7 @@ define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
   br label %"#block13"
 
 "#block13":                                       ; preds = %"#block12", %"#block11"
-  %4 = load i1, ptr %i1
+  %4 = load i1, ptr %i1, align 1
   br i1 %4, label %"#block14", label %"#block15"
 
 "#block14":                                       ; preds = %"#block13"
@@ -101,7 +101,7 @@ define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
   br label %"#block16"
 
 "#block16":                                       ; preds = %"#block15", %"#block14"
-  %5 = load i1, ptr %i1
+  %5 = load i1, ptr %i1, align 1
   br i1 %5, label %"#block17", label %"#block18"
 
 "#block17":                                       ; preds = %"#block16"
@@ -113,20 +113,20 @@ define void @"Main.testIf(Word[1])=>(Void)"(i1 %i) {
   br label %"#block19"
 
 "#block19":                                       ; preds = %"#block18", %"#block17"
-  %j = alloca i32
-  %6 = load i1, ptr %i1
-  %j2 = alloca i32
-  %i3 = alloca i32
-  %j4 = alloca i32
-  %i5 = alloca i32
+  %j = alloca i32, align 4
+  %6 = load i1, ptr %i1, align 1
+  %j2 = alloca i32, align 4
+  %i3 = alloca i32, align 4
+  %j4 = alloca i32, align 4
+  %i5 = alloca i32, align 4
   br i1 %6, label %"#block20", label %"#block21"
 
 "#block20":                                       ; preds = %"#block19"
-  store i32 2, ptr %i3
+  store i32 2, ptr %i3, align 4
   br label %"#block22"
 
 "#block21":                                       ; preds = %"#block19"
-  store i32 3, ptr %i5
+  store i32 3, ptr %i5, align 4
   br label %"#block22"
 
 "#block22":                                       ; preds = %"#block21", %"#block20"
