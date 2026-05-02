@@ -8,11 +8,11 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
-@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__entry__2, i32* null }]
+@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__entry__2, ptr null }]
 @llvm.global_dtors = appending constant [0 x %LlvmGlobalCtorDtor] zeroinitializer
 
 define void @__entry__2() {
@@ -23,22 +23,22 @@ define void @__entry__2() {
 define i64 @"Main.main(Int[64],Float[64])=>(Int[64])"(i64 %a, double %b) {
 "#block1":
   %a1 = alloca i64
-  store i64 %a, i64* %a1
+  store i64 %a, ptr %a1
   %b2 = alloca double
-  store double %b, double* %b2
+  store double %b, ptr %b2
 }
 
 define i64 @"Main.f(Int[32],Float[32])=>(Int[64])"(i32 %a, float %b) {
 "#block2":
   %a1 = alloca i32
-  store i32 %a, i32* %a1
+  store i32 %a, ptr %a1
   %b2 = alloca float
-  store float %b, float* %b2
+  store float %b, ptr %b2
 }
 
-define i32 @"Main.g(ptr[Int[32]])=>(Int[32])"(i32* %a) {
+define i32 @"Main.g(ptr[Int[32]])=>(Int[32])"(ptr %a) {
 "#block3":
-  %a1 = alloca i32*
-  store i32* %a, i32** %a1
+  %a1 = alloca ptr
+  store ptr %a, ptr %a1
 }
 ------------------------------------------------------------

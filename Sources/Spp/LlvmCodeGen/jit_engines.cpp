@@ -23,10 +23,8 @@ Error JitEngineBuilderState::prepareForConstruction() {
       return JTMBOrErr.takeError();
   }
 
-  // If the client didn't configure any linker options then auto-configure the
-  // JIT linker.
-  if (!createObjectLinkingLayer && jtmb->getCodeModel() == None &&
-      jtmb->getRelocationModel() == None) {
+  if (!createObjectLinkingLayer && !jtmb->getCodeModel().has_value() &&
+      !jtmb->getRelocationModel().has_value()) {
 
     auto &tt = jtmb->getTargetTriple();
     if (tt.isOSBinFormatMachO() &&
@@ -37,8 +35,13 @@ Error JitEngineBuilderState::prepareForConstruction() {
       createObjectLinkingLayer =
           [](ExecutionSession &es,
              const Triple &) -> std::unique_ptr<ObjectLayer> {
+        uint64_t PageSize = 4096;
+        if (auto P = llvm::sys::Process::getPageSize()) {
+          PageSize = *P;
+        }
+
         return std::make_unique<ObjectLinkingLayer>(
-            es, std::make_unique<jitlink::InProcessMemoryManager>());
+            es, std::make_unique<jitlink::InProcessMemoryManager>(PageSize));
       };
     }
   }
@@ -58,7 +61,13 @@ JitEngine::~JitEngine() {
 
 Error JitEngine::defineAbsolute(StringRef name, JITEvaluatedSymbol sym) {
   auto InternedName = es->intern(name);
-  SymbolMap Symbols({{InternedName, sym}});
+  
+  SymbolMap Symbols;
+  Symbols[InternedName] = llvm::orc::ExecutorSymbolDef(
+      llvm::orc::ExecutorAddr(sym.getAddress()), 
+      sym.getFlags()
+  );
+
   return main.define(absoluteSymbols(std::move(Symbols)));
 }
 
@@ -69,10 +78,10 @@ Error JitEngine::addIRModule(JITDylib &jd, ThreadSafeModule tsm) {
   if (auto err = tsm.withModuleDo([&](Module &m) { return applyDataLayout(m); }))
     return err;
 
-  if (optimizeLayer.get() != 0) {
-    return optimizeLayer->add(jd, std::move(tsm), es->allocateVModule());
+  if (optimizeLayer.get() != nullptr) {
+    return optimizeLayer->add(jd, std::move(tsm));
   } else {
-    return compileLayer->add(jd, std::move(tsm), es->allocateVModule());
+    return compileLayer->add(jd, std::move(tsm));
   }
 }
 
@@ -80,15 +89,19 @@ Error JitEngine::addIRModule(JITDylib &jd, ThreadSafeModule tsm) {
 Error JitEngine::addObjectFile(JITDylib &jd, std::unique_ptr<MemoryBuffer> obj) {
   assert(obj && "Can not add null object");
 
-  return objTransformLayer.add(jd, std::move(obj), es->allocateVModule());
+  return objTransformLayer.add(jd, std::move(obj));
 }
 
-
-Expected<JITEvaluatedSymbol> JitEngine::lookupLinkerMangled(JITDylib &jd,
-                                                        StringRef name) {
-  return es->lookup(
+Expected<JITEvaluatedSymbol> JitEngine::lookupLinkerMangled(JITDylib &jd, StringRef name) {
+  auto Result = es->lookup(
       makeJITDylibSearchOrder(&jd, JITDylibLookupFlags::MatchAllSymbols),
       es->intern(name));
+
+  if (!Result)
+    return Result.takeError();
+
+  // Convert ExecutorSymbolDef to JITEvaluatedSymbol
+  return JITEvaluatedSymbol(Result->getAddress().getValue(), Result->getFlags());
 }
 
 
@@ -136,17 +149,22 @@ Expected<std::unique_ptr<IRCompileLayer::IRCompiler>> JitEngine::createCompileFu
 
 
 JitEngine::JitEngine(JitEngineBuilderState &s, Error &err, Bool useOptimizeLayer)
-    : es(s.es ? std::move(s.es) : std::make_unique<ExecutionSession>()),
-      main(this->es->createJITDylib("<main>")), dl(""),
+    : es(s.es ? std::move(s.es) : []() {
+        return std::make_unique<ExecutionSession>(
+            cantFail(SelfExecutorProcessControl::Create()));
+      }()),
+      main(cantFail(this->es->createJITDylib("<main>"))), 
+      dl(""),
       objLinkingLayer(createObjectLinkingLayer(s, *es)),
-      objTransformLayer(*this->es, *objLinkingLayer), ctorRunner(main),
+      objTransformLayer(*this->es, *objLinkingLayer), 
+      ctorRunner(main),
       dtorRunner(main) {
 
   ErrorAsOutParameter _(&err);
 
-  if (auto DLOrErr = s.jtmb->getDefaultDataLayoutForTarget())
+  if (auto DLOrErr = s.jtmb->getDefaultDataLayoutForTarget()) {
     dl = std::move(*DLOrErr);
-  else {
+  } else {
     err = DLOrErr.takeError();
     return;
   }
@@ -163,15 +181,12 @@ JitEngine::JitEngine(JitEngineBuilderState &s, Error &err, Bool useOptimizeLayer
 
   if (s.numCompileThreads > 0) {
     compileLayer->setCloneToNewContextOnEmit(true);
-    compileThreads = std::make_unique<ThreadPool>(s.numCompileThreads);
-    es->setDispatchMaterialization(
-      [this](JITDylib &jd, std::unique_ptr<MaterializationUnit> mu) {
-        // FIXME: Switch to move capture once we have c++14.
-        auto sharedMu = std::shared_ptr<MaterializationUnit>(std::move(mu));
-        auto work = [sharedMu, &jd]() { sharedMu->doMaterialize(jd); };
-        compileThreads->async(std::move(work));
-      }
-    );
+    
+    auto Dispatcher = std::make_shared<DynamicThreadPoolTaskDispatcher>();
+
+    es->setDispatchTask([Dispatcher](std::unique_ptr<Task> T) {
+      Dispatcher->dispatch(std::move(T));
+    });
   }
 
   if (useOptimizeLayer) {
@@ -179,43 +194,47 @@ JitEngine::JitEngine(JitEngineBuilderState &s, Error &err, Bool useOptimizeLayer
   }
 }
 
-
-std::unique_ptr<llvm::orc::IRTransformLayer> JitEngine::createOptimizeLayer(llvm::orc::IRLayer &prevLayer) {
+std::unique_ptr<llvm::orc::IRTransformLayer>
+JitEngine::createOptimizeLayer(llvm::orc::IRLayer &prevLayer) {
   auto optimizeLayer = std::make_unique<IRTransformLayer>(*es, prevLayer);
 
-  static llvm::Expected<llvm::orc::JITTargetMachineBuilder> tmb = llvm::orc::JITTargetMachineBuilder::detectHost();
-  static std::unique_ptr<llvm::TargetMachine> targetMachine = std::move(tmb.get().createTargetMachine().get());
-  static llvm::PassManagerBuilder builder;
-  builder.OptLevel = 3; // TODO: what is the most appropriate level to use?
-  builder.SizeLevel = 0;
-  builder.Inliner = llvm::createFunctionInliningPass(3, 0, false);
-  builder.LoopVectorize = true;
-  builder.SLPVectorize = true;
-  targetMachine->adjustPassManager(builder);
+  static llvm::Expected<llvm::orc::JITTargetMachineBuilder> tmb =
+      llvm::orc::JITTargetMachineBuilder::detectHost();
+  static std::unique_ptr<llvm::TargetMachine> targetMachine =
+      std::move(tmb.get().createTargetMachine().get());
 
   optimizeLayer->setTransform(
-    [&](llvm::orc::ThreadSafeModule tsm, const llvm::orc::MaterializationResponsibility &r) {
+    [&](llvm::orc::ThreadSafeModule tsm,
+        const llvm::orc::MaterializationResponsibility &r) {
       tsm.withModuleDo([&](llvm::Module &module) {
-        llvm::legacy::PassManager passes;
-        passes.add(new llvm::TargetLibraryInfoWrapperPass(targetMachine->getTargetTriple()));
-        passes.add(llvm::createTargetTransformInfoWrapperPass(targetMachine->getTargetIRAnalysis()));
-
-        llvm::legacy::FunctionPassManager fnPasses(&module);
-        fnPasses.add(llvm::createTargetTransformInfoWrapperPass(targetMachine->getTargetIRAnalysis()));
-
-        builder.populateFunctionPassManager(fnPasses);
-        builder.populateModulePassManager(passes);
-        builder.populateLTOPassManager(passes);
-
-        fnPasses.doInitialization();
-        for (llvm::Function &func : module) {
-          fnPasses.run(func);
+        if (llvm::verifyModule(module, &llvm::errs())) {
+          llvm::errs() << "Invalid IR before optimization\n";
+          module.print(llvm::errs(), nullptr);
+          llvm::report_fatal_error("Invalid IR generated by TargetGenerator");
         }
-        fnPasses.doFinalization();
 
-        passes.add(llvm::createVerifierPass());
-        passes.run(module);
+        llvm::LoopAnalysisManager lam;
+        llvm::FunctionAnalysisManager fam;
+        llvm::CGSCCAnalysisManager cgam;
+        llvm::ModuleAnalysisManager mam;
+
+        llvm::PassBuilder pb(targetMachine.get());
+
+        pb.registerModuleAnalyses(mam);
+        pb.registerCGSCCAnalyses(cgam);
+        pb.registerFunctionAnalyses(fam);
+        pb.registerLoopAnalyses(lam);
+        pb.crossRegisterProxies(lam, fam, cgam, mam);
+
+        llvm::ModulePassManager mpm;
+        llvm::OptimizationLevel O3 = llvm::OptimizationLevel::O3;
+        mpm = pb.buildPerModuleDefaultPipeline(O3);
+
+        mpm.addPass(llvm::VerifierPass()); // keep this too
+
+        mpm.run(module, mam);
       });
+
       return tsm;
     }
   );
@@ -279,57 +298,68 @@ Error LazyJitEngine::addLazyIRModule(JITDylib &jd, ThreadSafeModule tsm) {
       }))
     return err;
 
-  return optimizeLayer->add(jd, std::move(tsm), es->allocateVModule());
+  return optimizeLayer->add(jd, std::move(tsm));
 }
 
+LazyJitEngine::LazyJitEngine(LazyJitEngineBuilderState &s, Error &err) 
+    : JitEngine(s, err, false) {
+    
+    // If base JitEngine construction failed, bail out.
+    if (err)
+        return;
 
-LazyJitEngine::LazyJitEngine(LazyJitEngineBuilderState &s, Error &err) : JitEngine(s, err, false) {
-  // If JitEngine construction failed then bail out.
-  if (err)
-    return;
+    ErrorAsOutParameter _(&err);
 
-  ErrorAsOutParameter _(&err);
+    /// 1. Create/Take the lazy-compile callthrough manager.
+    if (s.lctMgr) {
+        lctMgr = std::move(s.lctMgr);
+    } else {
+        auto lctMgrOrErr = createLocalLazyCallThroughManager(
+            s.tt, 
+            *es, 
+            llvm::orc::ExecutorAddr(s.lazyCompileFailureAddr)
+        );
 
-  /// Take/Create the lazy-compile callthrough manager.
-  if (s.lctMgr)
-    lctMgr = std::move(s.lctMgr);
-  else {
-    if (auto lctMgrOrErr = createLocalLazyCallThroughManager(
-            s.tt, *es, s.lazyCompileFailureAddr))
-      lctMgr = std::move(*lctMgrOrErr);
-    else {
-      err = lctMgrOrErr.takeError();
-      return;
+        if (lctMgrOrErr) {
+            lctMgr = std::move(*lctMgrOrErr);
+        } else {
+            err = lctMgrOrErr.takeError();
+            return;
+        }
     }
-  }
 
-  // Take/Create the indirect stubs manager builder.
-  auto ismBuilder = std::move(s.ismBuilder);
+    /// 2. Create the indirect stubs manager builder.
+    auto ismBuilder = std::move(s.ismBuilder);
 
-  // If none was provided, try to build one.
-  if (!ismBuilder)
-    ismBuilder = createLocalIndirectStubsManagerBuilder(s.tt);
+    if (!ismBuilder) {
+        ismBuilder = createLocalIndirectStubsManagerBuilder(s.tt);
+    }
 
-  // No luck. Bail out.
-  if (!ismBuilder) {
-    err = make_error<StringError>(
-      "Could not construct IndirectStubsManagerBuilder for target " +
-      s.tt.str(), inconvertibleErrorCode()
+    if (!ismBuilder) {
+        err = make_error<StringError>(
+            "Could not construct IndirectStubsManagerBuilder for target " + s.tt.str(),
+            inconvertibleErrorCode()
+        );
+        return;
+    }
+
+    /// 3. Setup Layers.
+    // transformLayer bridges the base compileLayer to the COD (Compile On Demand) layer.
+    transformLayer = std::make_unique<IRTransformLayer>(*es, *compileLayer);
+
+    codLayer = std::make_unique<CompileOnDemandLayer>(
+        *es, 
+        *transformLayer, 
+        *lctMgr, 
+        std::move(ismBuilder)
     );
-    return;
-  }
 
-  // Create the transform layer.
-  transformLayer = std::make_unique<IRTransformLayer>(*es, *compileLayer);
+    if (s.numCompileThreads > 0) {
+        codLayer->setCloneToNewContextOnEmit(true);
+    }
 
-  // Create the COD layer.
-  codLayer = std::make_unique<CompileOnDemandLayer>(
-      *es, *transformLayer, *lctMgr, std::move(ismBuilder));
-
-  if (s.numCompileThreads > 0)
-    codLayer->setCloneToNewContextOnEmit(true);
-
-  optimizeLayer = createOptimizeLayer(*codLayer);
+    // Finalize by creating the optimization layer on top of the COD layer.
+    optimizeLayer = createOptimizeLayer(*codLayer);
 }
 
 } // namespace

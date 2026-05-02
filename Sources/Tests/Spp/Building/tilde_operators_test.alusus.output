@@ -54,14 +54,14 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
 @"#anonymous0" = private constant [8 x i8] c"i = %d\0A\00"
 @"#anonymous1" = private constant [13 x i8] c"pi~cnt = %d\0A\00"
 @"!Other.i" = global i32 0
-@"!Other.pi" = global i32* null
+@"!Other.pi" = global ptr null
 @"#anonymous2" = private constant [8 x i8] c"f = %f\0A\00"
 @"#anonymous3" = private constant [24 x i8] c"f~cast[Float[64]] = %f\0A\00"
 @"#anonymous4" = private constant [16 x i8] c"Main~size = %d\0A\00"
@@ -76,7 +76,7 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 @"#anonymous13" = private constant [24 x i8] c"ptr[Int[62]]~size = %d\0A\00"
 @"#anonymous14" = private constant [16 x i8] c"ptrI~size = %d\0A\00"
 @"#anonymous15" = private constant [18 x i8] c"Int[0]~size = %d\0A\00"
-@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__entry__2, i32* null }]
+@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__entry__2, ptr null }]
 @llvm.global_dtors = appending constant [0 x %LlvmGlobalCtorDtor] zeroinitializer
 
 define void @__entry__2() {
@@ -84,39 +84,39 @@ define void @__entry__2() {
   ret void
 }
 
-declare i64 @printf(i8*, ...)
+declare i64 @printf(ptr, ...)
 
 define void @"Main.testPtrAndCnt()=>(Void)"() {
 "#block1":
   %i = alloca i32
-  %pi = alloca i32*
-  %pf = alloca float*
-  %ppi = alloca i32**
-  store i32* %i, i32** %pi
-  %0 = load i32*, i32** %pi
-  store i32 5, i32* %0
-  %1 = load i32, i32* %i
-  %2 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @"#anonymous0", i32 0, i32 0), i32 %1)
-  store i32 10, i32* %i
-  %3 = load i32*, i32** %pi
-  %4 = load i32, i32* %3
-  %5 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @"#anonymous1", i32 0, i32 0), i32 %4)
-  %6 = load float*, float** %pf
-  %7 = load i32, i32* %i
+  %pi = alloca ptr
+  %pf = alloca ptr
+  %ppi = alloca ptr
+  store ptr %i, ptr %pi
+  %0 = load ptr, ptr %pi
+  store i32 5, ptr %0
+  %1 = load i32, ptr %i
+  %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
+  store i32 10, ptr %i
+  %3 = load ptr, ptr %pi
+  %4 = load i32, ptr %3
+  %5 = call i64 (ptr, ...) @printf(ptr @"#anonymous1", i32 %4)
+  %6 = load ptr, ptr %pf
+  %7 = load i32, ptr %i
   %8 = sitofp i32 %7 to float
-  store float %8, float* %6
-  %9 = load float*, float** %pf
-  %10 = load float, float* %9
+  store float %8, ptr %6
+  %9 = load ptr, ptr %pf
+  %10 = load float, ptr %9
   %11 = fptosi float %10 to i32
-  store i32 %11, i32* %i
-  store i32** %pi, i32*** %ppi
-  %12 = load i32**, i32*** %ppi
-  %13 = load i32*, i32** %12
-  %14 = load i32, i32* %13
-  store i32 %14, i32* %i
-  store i32* @"!Other.i", i32** %pi
-  %15 = load i32*, i32** @"!Other.pi"
-  store i32 10, i32* %15
+  store i32 %11, ptr %i
+  store ptr %pi, ptr %ppi
+  %12 = load ptr, ptr %ppi
+  %13 = load ptr, ptr %12
+  %14 = load i32, ptr %13
+  store i32 %14, ptr %i
+  store ptr @"!Other.i", ptr %pi
+  %15 = load ptr, ptr @"!Other.pi"
+  store i32 10, ptr %15
   ret void
 }
 
@@ -126,113 +126,111 @@ define void @"Main.testCast()=>(Void)"() {
   %l = alloca i64
   %ptrI = alloca i64
   %f = alloca float
-  %pi = alloca i32*
+  %pi = alloca ptr
   %d = alloca double
   %w = alloca i32
   %lw = alloca i64
-  %0 = load i32, i32* %i
+  %0 = load i32, ptr %i
   %1 = sext i32 %0 to i64
-  %2 = load i32, i32* %i
+  %2 = load i32, ptr %i
   %3 = sext i32 %2 to i64
-  %4 = load i64, i64* %l
+  %4 = load i64, ptr %l
   %5 = trunc i64 %4 to i32
-  %6 = load i64, i64* %l
-  %7 = load i64, i64* %ptrI
+  %6 = load i64, ptr %l
+  %7 = load i64, ptr %ptrI
   %8 = trunc i64 %7 to i32
-  %9 = load i64, i64* %ptrI
-  %10 = load i64, i64* %ptrI
-  %11 = inttoptr i64 %10 to i8*
-  %12 = load i32, i32* %w
+  %9 = load i64, ptr %ptrI
+  %10 = load i64, ptr %ptrI
+  %11 = inttoptr i64 %10 to ptr
+  %12 = load i32, ptr %w
   %13 = zext i32 %12 to i64
-  %14 = load i32, i32* %w
+  %14 = load i32, ptr %w
   %15 = zext i32 %14 to i64
-  %16 = load i64, i64* %lw
-  %17 = load i64, i64* %lw
-  %18 = load i32, i32* %i
-  %19 = load i64, i64* %l
+  %16 = load i64, ptr %lw
+  %17 = load i64, ptr %lw
+  %18 = load i32, ptr %i
+  %19 = load i64, ptr %l
   %20 = sext i32 %18 to i64
   %21 = icmp eq i64 %20, %19
-  %22 = load i32, i32* %i
-  %23 = load i64, i64* %ptrI
+  %22 = load i32, ptr %i
+  %23 = load i64, ptr %ptrI
   %24 = sext i32 %22 to i64
   %25 = icmp eq i64 %24, %23
-  %26 = load i32, i32* %i
-  %27 = load i32, i32* %w
-  %28 = load i32, i32* %i
-  %29 = load i64, i64* %lw
-  %30 = load i64, i64* %l
-  %31 = load i32, i32* %i
+  %26 = load i32, ptr %i
+  %27 = load i32, ptr %w
+  %28 = load i32, ptr %i
+  %29 = load i64, ptr %lw
+  %30 = load i64, ptr %l
+  %31 = load i32, ptr %i
   %32 = sext i32 %31 to i64
   %33 = icmp eq i64 %30, %32
-  %34 = load i64, i64* %l
-  %35 = load i64, i64* %ptrI
+  %34 = load i64, ptr %l
+  %35 = load i64, ptr %ptrI
   %36 = icmp eq i64 %34, %35
-  %37 = load i64, i64* %l
-  %38 = load i32, i32* %w
+  %37 = load i64, ptr %l
+  %38 = load i32, ptr %w
   %39 = zext i32 %38 to i64
   %40 = icmp eq i64 %37, %39
-  %41 = load i64, i64* %l
-  %42 = load i64, i64* %lw
-  %43 = load i64, i64* %ptrI
-  %44 = load i32, i32* %i
+  %41 = load i64, ptr %l
+  %42 = load i64, ptr %lw
+  %43 = load i64, ptr %ptrI
+  %44 = load i32, ptr %i
   %45 = sext i32 %44 to i64
   %46 = icmp eq i64 %43, %45
-  %47 = load i64, i64* %ptrI
-  %48 = load i64, i64* %l
+  %47 = load i64, ptr %ptrI
+  %48 = load i64, ptr %l
   %49 = icmp eq i64 %47, %48
-  %50 = load i64, i64* %ptrI
-  %51 = load i32, i32* %w
-  %52 = load i64, i64* %ptrI
-  %53 = load i64, i64* %lw
-  %54 = load i32*, i32** %pi
-  %55 = bitcast i32* %54 to i16*
-  store i16 2, i16* %55
-  store float 3.000000e+01, float* %f
-  %56 = load float, float* %f
-  %57 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @"#anonymous2", i32 0, i32 0), float %56)
-  %58 = load float, float* %f
-  %59 = fpext float %58 to double
-  %60 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([24 x i8], [24 x i8]* @"#anonymous3", i32 0, i32 0), double %59)
-  %61 = bitcast i32* %i to i8*
-  store i8 1, i8* %61
-  %62 = load i32*, i32** %pi
-  %63 = ptrtoint i32* %62 to i64
-  store i32* inttoptr (i64 10 to i32*), i32** %pi
-  %64 = load i64, i64* %l
-  %65 = inttoptr i64 %64 to i32*
-  store i32* %65, i32** %pi
-  %66 = load i64, i64* %ptrI
-  %67 = inttoptr i64 %66 to i32*
-  store i32* %67, i32** %pi
-  store double 1.000000e+01, double* %d
-  %68 = load double, double* %d
-  %69 = fptrunc double %68 to float
-  store float %69, float* %f
-  %70 = load float, float* %f
-  %71 = fptosi float %70 to i32
-  store i32 %71, i32* %i
-  %72 = load i32, i32* %i
+  %50 = load i64, ptr %ptrI
+  %51 = load i32, ptr %w
+  %52 = load i64, ptr %ptrI
+  %53 = load i64, ptr %lw
+  %54 = load ptr, ptr %pi
+  store i16 2, ptr %54
+  store float 3.000000e+01, ptr %f
+  %55 = load float, ptr %f
+  %56 = call i64 (ptr, ...) @printf(ptr @"#anonymous2", float %55)
+  %57 = load float, ptr %f
+  %58 = fpext float %57 to double
+  %59 = call i64 (ptr, ...) @printf(ptr @"#anonymous3", double %58)
+  store i8 1, ptr %i
+  %60 = load ptr, ptr %pi
+  %61 = ptrtoint ptr %60 to i64
+  store ptr inttoptr (i64 10 to ptr), ptr %pi
+  %62 = load i64, ptr %l
+  %63 = inttoptr i64 %62 to ptr
+  store ptr %63, ptr %pi
+  %64 = load i64, ptr %ptrI
+  %65 = inttoptr i64 %64 to ptr
+  store ptr %65, ptr %pi
+  store double 1.000000e+01, ptr %d
+  %66 = load double, ptr %d
+  %67 = fptrunc double %66 to float
+  store float %67, ptr %f
+  %68 = load float, ptr %f
+  %69 = fptosi float %68 to i32
+  store i32 %69, ptr %i
+  %70 = load i32, ptr %i
+  %71 = sitofp i32 %70 to float
+  store float %71, ptr %f
+  %72 = load i32, ptr @"!Other.i"
   %73 = sitofp i32 %72 to float
-  store float %73, float* %f
-  %74 = load i32, i32* @"!Other.i"
-  %75 = sitofp i32 %74 to float
-  store float %75, float* %f
+  store float %73, ptr %f
   ret void
 }
 
 define void @"Main.testSize()=>(Void)"() {
 "#block3":
   %i = alloca i32
-  %pi = alloca i32*
+  %pi = alloca ptr
   %ptrI = alloca i64
-  %0 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @"#anonymous6", i32 0, i32 0), i8 4)
-  %1 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([14 x i8], [14 x i8]* @"#anonymous7", i32 0, i32 0), i8 8)
-  %2 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @"#anonymous8", i32 0, i32 0), i8 1)
-  %3 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([22 x i8], [22 x i8]* @"#anonymous9", i32 0, i32 0), i8 8)
-  %4 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @"#anonymous10", i32 0, i32 0), i8 4)
-  %5 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([24 x i8], [24 x i8]* @"#anonymous12", i32 0, i32 0), i8 8)
-  %6 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @"#anonymous14", i32 0, i32 0), i8 8)
-  %7 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @"#anonymous15", i32 0, i32 0), i8 8)
+  %0 = call i64 (ptr, ...) @printf(ptr @"#anonymous6", i8 4)
+  %1 = call i64 (ptr, ...) @printf(ptr @"#anonymous7", i8 8)
+  %2 = call i64 (ptr, ...) @printf(ptr @"#anonymous8", i8 1)
+  %3 = call i64 (ptr, ...) @printf(ptr @"#anonymous9", i8 8)
+  %4 = call i64 (ptr, ...) @printf(ptr @"#anonymous10", i8 4)
+  %5 = call i64 (ptr, ...) @printf(ptr @"#anonymous12", i8 8)
+  %6 = call i64 (ptr, ...) @printf(ptr @"#anonymous14", i8 8)
+  %7 = call i64 (ptr, ...) @printf(ptr @"#anonymous15", i8 8)
   ret void
 }
 ------------------------------------------------------------

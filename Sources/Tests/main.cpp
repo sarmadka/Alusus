@@ -21,6 +21,10 @@
 #include <unistd.h>
 #include <regex>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <iterator>
+#include <string>
 
 using Core::Notices::Notice;
 using Core::Data::Ast::List;
@@ -120,9 +124,30 @@ Bool runSourceFile(Str const &fileName)
 
 
 /**
+ * Normalize output by removing unstable / environment-dependent parts.
+ */
+static std::string normalizeOutput(std::string const &content)
+{
+  auto result = std::regex_replace(
+    content,
+    std::regex("target datalayout = \"[a-zA-Z0-9:-]+\""),
+    S("target datalayout = \"<sanitized>\"")
+  );
+
+  result = std::regex_replace(
+    result,
+    std::regex(",\\s*align\\s+[0-9]+"),
+    S("")
+  );
+
+  return result;
+}
+
+/**
  * Checks whether the run result of a source file matches the expected result.
  * The expected result is stored in a file having the same name followed by
  * ".output" post-fix.
+ *
  * @param[in] fileName  The name of Alusus source file name.
  *
  * @return Returns @c true if the run result matches the expected result,
@@ -131,55 +156,58 @@ Bool runSourceFile(Str const &fileName)
 Bool checkRunResult(Str const &fileName)
 {
   std::ifstream runResult(resultFilename);
-  std::string runResultContent((std::istreambuf_iterator<char>(runResult)),
-      std::istreambuf_iterator<char>());
+  std::string runResultContent(
+    (std::istreambuf_iterator<char>(runResult)),
+    std::istreambuf_iterator<char>()
+  );
 
   std::ifstream expectedResult(fileName + ".output");
-  std::string expectedResultContent((std::istreambuf_iterator<char>(expectedResult)),
-      std::istreambuf_iterator<char>());
-
-  auto massagedRunResultContent = std::regex_replace(
-    runResultContent, std::regex("target datalayout = \"[a-zA-Z0-9:-]+\""), S("target datalayout = \"<sanitized>\"")
-  );
-  massagedRunResultContent = std::regex_replace(
-    massagedRunResultContent, std::regex(", align [0-9]+"), S("")
-  );
-  auto massagedExpectedResultContent = std::regex_replace(
-    expectedResultContent, std::regex("target datalayout = \"[a-zA-Z0-9:-]+\""), S("target datalayout = \"<sanitized>\"")
+  std::string expectedResultContent(
+    (std::istreambuf_iterator<char>(expectedResult)),
+    std::istreambuf_iterator<char>()
   );
 
-  // Remove one character from the expectedResultContent because, for some
-  // reason, editors seem to append 0A at the end of the file!
-  auto ret =  massagedRunResultContent.compare(massagedExpectedResultContent) == 0;
-  if (ret == true)
+  auto massagedRunResultContent = normalizeOutput(runResultContent);
+  auto massagedExpectedResultContent = normalizeOutput(expectedResultContent);
+
+  auto ret = massagedRunResultContent == massagedExpectedResultContent;
+
+  if (ret)
+  {
     std::cout << "Successful." << std::endl;
+  }
   else
   {
     std::cout << "Failed." << std::endl;
-    std::cout << "Expected Result (Length = " << massagedExpectedResultContent.size() << "): " << std::endl;
+    std::cout << "Expected Result (Length = "
+              << massagedExpectedResultContent.size() << "):" << std::endl;
     std::cout << massagedExpectedResultContent << std::endl;
-    std::cout << "Received Result (Length = " << massagedRunResultContent.size() << "): " << std::endl;
+
+    std::cout << "Received Result (Length = "
+              << massagedRunResultContent.size() << "):" << std::endl;
     std::cout << massagedRunResultContent << std::endl;
   }
+
   return ret;
 }
 
-
 /**
- * Update the test snapshot with the result from the prev execution.
+ * Update the test snapshot with the result from the previous execution.
  *
  * @param[in] fileName  The name of Alusus source file name.
  */
 void updateTestSnapshot(Str const &fileName)
 {
   std::ifstream runResult(resultFilename);
-  std::string runResultContent((std::istreambuf_iterator<char>(runResult)),
-      std::istreambuf_iterator<char>());
+  std::string runResultContent(
+    (std::istreambuf_iterator<char>(runResult)),
+    std::istreambuf_iterator<char>()
+  );
 
   std::ofstream expectedResult(fileName + ".output");
-  expectedResult << runResultContent;
+  expectedResult << normalizeOutput(runResultContent);
 
-  std::cout << "Done. " << std::endl;
+  std::cout << "Done." << std::endl;
 }
 
 

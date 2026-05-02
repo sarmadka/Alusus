@@ -22,10 +22,10 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
 %Main_Point = type { i32, i32, float }
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %Main_Nested = type { %Main_Point, i8, i16 }
 %Main_Empty = type {}
 %Main_DeepNested = type { %Main_Nested, i8, i16 }
@@ -40,7 +40,7 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 @"#anonymous5" = private constant [27 x i8] c"getPoint(1, 2, 3f).y = %d\0A\00"
 @"#anonymous6" = private constant [15 x i8] c"gpoint.x = %d\0A\00"
 @"#anonymous7" = private constant [15 x i8] c"gpoing.y = %d\0A\00"
-@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__entry__2, i32* null }]
+@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__entry__2, ptr null }]
 @llvm.global_dtors = appending constant [0 x %LlvmGlobalCtorDtor] zeroinitializer
 
 define void @__entry__2() {
@@ -48,42 +48,42 @@ define void @__entry__2() {
   ret void
 }
 
-declare i64 @printf(i8*, ...)
+declare i64 @printf(ptr, ...)
 
-define void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(%Main_Point* sret %__sret, i32 %x, i32 %y, float %s) {
+define void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(ptr sret(%Main_Point) %__sret, i32 %x, i32 %y, float %s) {
 "#block1":
   %x1 = alloca i32
-  store i32 %x, i32* %x1
+  store i32 %x, ptr %x1
   %y2 = alloca i32
-  store i32 %y, i32* %y2
+  store i32 %y, ptr %y2
   %s3 = alloca float
-  store float %s, float* %s3
+  store float %s, ptr %s3
   %p = alloca %Main_Point
-  %0 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 0
-  %1 = load i32, i32* %x1
-  store i32 %1, i32* %0
-  %2 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 1
-  %3 = load i32, i32* %y2
-  store i32 %3, i32* %2
-  %4 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 2
-  %5 = load float, float* %s3
-  store float %5, float* %4
-  %6 = load %Main_Point, %Main_Point* %p
-  store %Main_Point %6, %Main_Point* %__sret
+  %0 = getelementptr %Main_Point, ptr %p, i32 0, i32 0
+  %1 = load i32, ptr %x1
+  store i32 %1, ptr %0
+  %2 = getelementptr %Main_Point, ptr %p, i32 0, i32 1
+  %3 = load i32, ptr %y2
+  store i32 %3, ptr %2
+  %4 = getelementptr %Main_Point, ptr %p, i32 0, i32 2
+  %5 = load float, ptr %s3
+  store float %5, ptr %4
+  %6 = load %Main_Point, ptr %p
+  store %Main_Point %6, ptr %__sret
   ret void
 }
 
-define void @"Main.printPoint(Main.Point)=>(Void)"(%Main_Point* byval(%Main_Point) align 8 %p) {
+define void @"Main.printPoint(Main.Point)=>(Void)"(ptr byval(%Main_Point) align 8 %p) {
 "#block2":
-  %0 = load %Main_Point, %Main_Point* %p
+  %0 = load %Main_Point, ptr %p
   %p1 = alloca %Main_Point
-  store %Main_Point %0, %Main_Point* %p1
-  %1 = getelementptr %Main_Point, %Main_Point* %p1, i32 0, i32 0
-  %2 = load i32, i32* %1
-  %3 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @"#anonymous0", i32 0, i32 0), i32 %2)
-  %4 = getelementptr %Main_Point, %Main_Point* %p1, i32 0, i32 1
-  %5 = load i32, i32* %4
-  %6 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @"#anonymous1", i32 0, i32 0), i32 %5)
+  store %Main_Point %0, ptr %p1
+  %1 = getelementptr %Main_Point, ptr %p1, i32 0, i32 0
+  %2 = load i32, ptr %1
+  %3 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", i32 %2)
+  %4 = getelementptr %Main_Point, ptr %p1, i32 0, i32 1
+  %5 = load i32, ptr %4
+  %6 = call i64 (ptr, ...) @printf(ptr @"#anonymous1", i32 %5)
   ret void
 }
 
@@ -92,71 +92,68 @@ define void @"Main.start()=>(Void)"() {
   %p = alloca %Main_Point
   %n = alloca %Main_Nested
   %e = alloca %Main_Empty
-  %0 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 0
-  store i32 5, i32* %0
-  %1 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 1
-  store i32 6, i32* %1
-  %2 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 2
-  store float 1.000000e+00, float* %2
-  %3 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 1
-  store i8 8, i8* %3
-  %4 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 2
-  store i16 9, i16* %4
-  %5 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 0
-  %6 = getelementptr %Main_Point, %Main_Point* %5, i32 0, i32 0
-  store i32 3, i32* %6
-  %7 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 0
-  %8 = load %Main_Point, %Main_Point* %p
-  store %Main_Point %8, %Main_Point* %7
-  %9 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 0
-  %10 = load i32, i32* %9
-  %11 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @"#anonymous2", i32 0, i32 0), i32 %10)
-  %12 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 0
-  %13 = getelementptr %Main_Point, %Main_Point* %12, i32 0, i32 1
-  %14 = load i32, i32* %13
-  %15 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @"#anonymous3", i32 0, i32 0), i32 %14)
-  %16 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 0
-  store i32 1, i32* %16
-  %17 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 0
-  store i32 1, i32* %17
-  %18 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 1
-  store i8 10, i8* %18
-  %19 = getelementptr %Main_Point, %Main_Point* %p, i32 0, i32 1
-  %20 = load i32, i32* %19
+  %0 = getelementptr %Main_Point, ptr %p, i32 0, i32 0
+  store i32 5, ptr %0
+  %1 = getelementptr %Main_Point, ptr %p, i32 0, i32 1
+  store i32 6, ptr %1
+  %2 = getelementptr %Main_Point, ptr %p, i32 0, i32 2
+  store float 1.000000e+00, ptr %2
+  %3 = getelementptr %Main_Nested, ptr %n, i32 0, i32 1
+  store i8 8, ptr %3
+  %4 = getelementptr %Main_Nested, ptr %n, i32 0, i32 2
+  store i16 9, ptr %4
+  %5 = getelementptr %Main_Nested, ptr %n, i32 0, i32 0
+  %6 = getelementptr %Main_Point, ptr %5, i32 0, i32 0
+  store i32 3, ptr %6
+  %7 = getelementptr %Main_Nested, ptr %n, i32 0, i32 0
+  %8 = load %Main_Point, ptr %p
+  store %Main_Point %8, ptr %7
+  %9 = getelementptr %Main_Point, ptr %p, i32 0, i32 0
+  %10 = load i32, ptr %9
+  %11 = call i64 (ptr, ...) @printf(ptr @"#anonymous2", i32 %10)
+  %12 = getelementptr %Main_Nested, ptr %n, i32 0, i32 0
+  %13 = getelementptr %Main_Point, ptr %12, i32 0, i32 1
+  %14 = load i32, ptr %13
+  %15 = call i64 (ptr, ...) @printf(ptr @"#anonymous3", i32 %14)
+  %16 = getelementptr %Main_Point, ptr %p, i32 0, i32 0
+  store i32 1, ptr %16
+  %17 = getelementptr %Main_Point, ptr %p, i32 0, i32 0
+  store i32 1, ptr %17
+  %18 = getelementptr %Main_Nested, ptr %n, i32 0, i32 1
+  store i8 10, ptr %18
+  %19 = getelementptr %Main_Point, ptr %p, i32 0, i32 1
+  %20 = load i32, ptr %19
   %21 = trunc i32 %20 to i8
-  %22 = getelementptr %Main_Nested, %Main_Nested* %n, i32 0, i32 1
-  store i8 %21, i8* %22
+  %22 = getelementptr %Main_Nested, ptr %n, i32 0, i32 1
+  store i8 %21, ptr %22
   %23 = alloca %Main_Point
-  call void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(%Main_Point* sret %23, i32 1, i32 2, float 3.000000e+00)
-  %24 = load %Main_Point, %Main_Point* %23
+  call void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(ptr sret(%Main_Point) %23, i32 1, i32 2, float 3.000000e+00)
+  %24 = load %Main_Point, ptr %23
   %25 = alloca %Main_Point
-  store %Main_Point %24, %Main_Point* %25
-  %26 = getelementptr %Main_Point, %Main_Point* %25, i32 0, i32 1
-  %27 = load i32, i32* %26
-  %28 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([27 x i8], [27 x i8]* @"#anonymous5", i32 0, i32 0), i32 %27)
-  call void @"Main.printPoint(Main.Point)=>(Void)"(%Main_Point* byval(%Main_Point) align 8 %p)
+  store %Main_Point %24, ptr %25
+  %26 = getelementptr %Main_Point, ptr %25, i32 0, i32 1
+  %27 = load i32, ptr %26
+  %28 = call i64 (ptr, ...) @printf(ptr @"#anonymous5", i32 %27)
+  call void @"Main.printPoint(Main.Point)=>(Void)"(ptr byval(%Main_Point) align 8 %p)
   %29 = alloca %Main_Point
-  call void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(%Main_Point* sret %29, i32 2, i32 4, float 6.000000e+00)
-  call void @"Main.printPoint(Main.Point)=>(Void)"(%Main_Point* byval(%Main_Point) align 8 %29)
+  call void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(ptr sret(%Main_Point) %29, i32 2, i32 4, float 6.000000e+00)
+  call void @"Main.printPoint(Main.Point)=>(Void)"(ptr byval(%Main_Point) align 8 %29)
   %30 = alloca %Main_Point
-  call void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(%Main_Point* sret %30, i32 4, i32 8, float 9.000000e+00)
-  %31 = load %Main_Point, %Main_Point* %30
-  store %Main_Point %31, %Main_Point* %p
-  call void @"Main.printPoint(Main.Point)=>(Void)"(%Main_Point* byval(%Main_Point) align 8 %p)
-  %32 = load i32, i32* getelementptr inbounds (%Main_Point, %Main_Point* @"!Main.gpoint", i32 0, i32 0)
-  %33 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @"#anonymous6", i32 0, i32 0), i32 %32)
-  %34 = load i32, i32* getelementptr inbounds (%Main_Point, %Main_Point* @"!Main.gpoint", i32 0, i32 1)
-  %35 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @"#anonymous7", i32 0, i32 0), i32 %34)
-  %pp = alloca %Main_Point*
-  %pn = alloca %Main_Nested*
-  %pd = alloca %Main_DeepNested*
+  call void @"Main.getPoint(Int[32],Int[32],Float[32])=>(Main.Point)"(ptr sret(%Main_Point) %30, i32 4, i32 8, float 9.000000e+00)
+  %31 = load %Main_Point, ptr %30
+  store %Main_Point %31, ptr %p
+  call void @"Main.printPoint(Main.Point)=>(Void)"(ptr byval(%Main_Point) align 8 %p)
+  %32 = load i32, ptr @"!Main.gpoint"
+  %33 = call i64 (ptr, ...) @printf(ptr @"#anonymous6", i32 %32)
+  %34 = load i32, ptr getelementptr inbounds (%Main_Point, ptr @"!Main.gpoint", i32 0, i32 1)
+  %35 = call i64 (ptr, ...) @printf(ptr @"#anonymous7", i32 %34)
+  %pp = alloca ptr
+  %pn = alloca ptr
+  %pd = alloca ptr
   %d = alloca %Main_DeepNested
-  %36 = bitcast %Main_Nested* %n to %Main_Point*
-  store %Main_Point* %36, %Main_Point** %pp
-  %37 = bitcast %Main_DeepNested* %d to %Main_Point*
-  store %Main_Point* %37, %Main_Point** %pp
-  %38 = bitcast %Main_DeepNested* %d to %Main_Nested*
-  store %Main_Nested* %38, %Main_Nested** %pn
+  store ptr %n, ptr %pp
+  store ptr %d, ptr %pp
+  store ptr %d, ptr %pn
   ret void
 }
 ------------------------------------------------------------

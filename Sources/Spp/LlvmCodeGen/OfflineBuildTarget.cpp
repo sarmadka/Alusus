@@ -36,7 +36,7 @@ void OfflineBuildTarget::setupBuild()
   auto features = "";
 
   llvm::TargetOptions opt;
-  auto rm = llvm::Optional<llvm::Reloc::Model>();
+  auto rm = std::optional<llvm::Reloc::Model>();
   this->targetMachine = std::unique_ptr<llvm::TargetMachine>(
     target->createTargetMachine(targetTriple, cpu, features, opt, rm)
   );
@@ -110,14 +110,14 @@ void OfflineBuildTarget::generateObjectFile(
   this->llvmModule->setTargetTriple(this->targetTriple);
 
   std::error_code ec;
-  llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::F_None);
+  llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
 
   if (ec) {
     throw EXCEPTION(FileException, ec.message().c_str(), C('w'));
   }
 
   llvm::legacy::PassManager pass;
-  auto fileType = llvm::CGFT_ObjectFile;
+  auto fileType = llvm::CodeGenFileType::ObjectFile;
 
   if (this->targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
     throw EXCEPTION(GenericException, S("TheTargetMachine can't emit a file of this type"));

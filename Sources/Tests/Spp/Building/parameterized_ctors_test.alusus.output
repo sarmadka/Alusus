@@ -6,12 +6,12 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
 %B = type { %A }
-%__VaList = type { i32, i32, i8*, i8* }
+%__VaList = type { i32, i32, ptr, ptr }
 
 @"#anonymous0" = private constant [4 x i8] c"err\00"
 @llvm.global_ctors = appending constant [0 x %LlvmGlobalCtorDtor] zeroinitializer
@@ -20,79 +20,77 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 define void @"test()"() {
 "#block0":
   %a = alloca %A
-  call void @"A.~init(ref[A],Int[32])"(%A* %a, i32 5)
+  call void @"A.~init(ref[A],Int[32])"(ptr %a, i32 5)
   %a2 = alloca %A
-  call void (%A*, i32, ...) @"A.~init(ref[A],Int[32],ArgPack[Int[32],1,0])"(%A* %a2, i32 2, i32 3, i32 8)
-  %a3 = alloca %A*
-  store %A* %a, %A** %a3
+  call void (ptr, i32, ...) @"A.~init(ref[A],Int[32],ArgPack[Int[32],1,0])"(ptr %a2, i32 2, i32 3, i32 8)
+  %a3 = alloca ptr
+  store ptr %a, ptr %a3
   %b = alloca %B
-  call void @B.__autoConstruct__(%B* %b)
+  call void @B.__autoConstruct__(ptr %b)
   %ae1 = alloca %A
   %ae2 = alloca %A
   ret void
 }
 
-define void @"A.~init(ref[A],Int[32])"(%A* %this, i32 %n) {
+define void @"A.~init(ref[A],Int[32])"(ptr %this, i32 %n) {
 "#block6":
-  %this1 = alloca %A*
-  store %A* %this, %A** %this1
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   %n2 = alloca i32
-  store i32 %n, i32* %n2
-  %0 = load %A*, %A** %this1
-  %1 = getelementptr %A, %A* %0, i32 0, i32 0
-  %2 = load i32, i32* %n2
-  store i32 %2, i32* %1
+  store i32 %n, ptr %n2
+  %0 = load ptr, ptr %this1
+  %1 = getelementptr %A, ptr %0, i32 0, i32 0
+  %2 = load i32, ptr %n2
+  store i32 %2, ptr %1
   ret void
 }
 
-define void @"A.~init(ref[A],Int[32],ArgPack[Int[32],1,0])"(%A* %this, i32 %c, ...) {
+define void @"A.~init(ref[A],Int[32],ArgPack[Int[32],1,0])"(ptr %this, i32 %c, ...) {
 "#block2":
   %__vaList = alloca %__VaList
-  %0 = bitcast %__VaList* %__vaList to i8*
-  call void @llvm.va_start(i8* %0)
-  %this1 = alloca %A*
-  store %A* %this, %A** %this1
+  call void @llvm.va_start(ptr %__vaList)
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   %c2 = alloca i32
-  store i32 %c, i32* %c2
-  %1 = load %A*, %A** %this1
-  %2 = getelementptr %A, %A* %1, i32 0, i32 0
-  store i32 0, i32* %2
+  store i32 %c, ptr %c2
+  %0 = load ptr, ptr %this1
+  %1 = getelementptr %A, ptr %0, i32 0, i32 0
+  store i32 0, ptr %1
   br label %"#block3"
 
 "#block3":                                        ; preds = %"#block4", %"#block2"
-  %3 = load i32, i32* %c2
-  %4 = sub nsw i32 %3, 1
-  store i32 %4, i32* %c2
-  %5 = icmp sgt i32 %3, 0
-  br i1 %5, label %"#block4", label %"#block5"
+  %2 = load i32, ptr %c2
+  %3 = sub nsw i32 %2, 1
+  store i32 %3, ptr %c2
+  %4 = icmp sgt i32 %2, 0
+  br i1 %4, label %"#block4", label %"#block5"
 
 "#block4":                                        ; preds = %"#block3"
-  %6 = va_arg %__VaList* %__vaList, i32
-  %7 = load %A*, %A** %this1
-  %8 = getelementptr %A, %A* %7, i32 0, i32 0
-  %9 = load i32, i32* %8
-  %10 = add nsw i32 %9, %6
-  store i32 %10, i32* %8
+  %5 = va_arg ptr %__vaList, i32
+  %6 = load ptr, ptr %this1
+  %7 = getelementptr %A, ptr %6, i32 0, i32 0
+  %8 = load i32, ptr %7
+  %9 = add nsw i32 %8, %5
+  store i32 %9, ptr %7
   br label %"#block3"
 
 "#block5":                                        ; preds = %"#block3"
-  %11 = bitcast %__VaList* %__vaList to i8*
-  call void @llvm.va_end(i8* %11)
+  call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
-define void @B.__autoConstruct__(%B* %this) {
+define void @B.__autoConstruct__(ptr %this) {
 "#block1":
-  %0 = getelementptr %B, %B* %this, i32 0, i32 0
-  call void (%A*, i32, ...) @"A.~init(ref[A],Int[32],ArgPack[Int[32],1,0])"(%A* %0, i32 4, i32 5, i32 6, i32 7, i32 8)
+  %0 = getelementptr %B, ptr %this, i32 0, i32 0
+  call void (ptr, i32, ...) @"A.~init(ref[A],Int[32],ArgPack[Int[32],1,0])"(ptr %0, i32 4, i32 5, i32 6, i32 7, i32 8)
   ret void
 }
 
-; Function Attrs: nounwind
-declare void @llvm.va_start(i8*) #0
+; Function Attrs: nocallback nofree nosync nounwind willreturn
+declare void @llvm.va_start(ptr) #0
 
-; Function Attrs: nounwind
-declare void @llvm.va_end(i8*) #0
+; Function Attrs: nocallback nofree nosync nounwind willreturn
+declare void @llvm.va_end(ptr) #0
 
-attributes #0 = { nounwind }
+attributes #0 = { nocallback nofree nosync nounwind willreturn }
 ------------------------------------------------------------

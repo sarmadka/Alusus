@@ -131,14 +131,14 @@ def build_alusus(alusus_build_location: str,
         libs_to_install = []
         if alusus_target_triplet.value.platform == "linux":
             libs_to_install = [
-                ("libcurl.so", "libcurl.so"),
-                ("libkubazip.so", "libkubazip.so")
+                (("libcurl.so",), ("libcurl.so",)),
+                (("libkubazip.so",), ("libkubazip.so",))
             ]
             # TODO: Add more libs to install as needed here.
         elif alusus_target_triplet.value.platform == "darwin":
             libs_to_install = [
-                ("libcurl.dylib", "libcurl.dylib"),
-                ("libkubazip.dylib", "libkubazip.dylib")
+                (("libcurl.dylib",), ("libcurl.dylib",)),
+                (("libkubazip.dylib",), ("libkubazip.dylib",))
             ]
             # TODO: Add more libs to install as needed here.
         # TODO: Add more logic for other targets here.
@@ -158,9 +158,9 @@ def build_alusus(alusus_build_location: str,
 
         for source_libname, dst_libname in libs_to_install:
             shlib_build_location = os.path.join(
-                std_libs_location, source_libname)
+                std_libs_location, *source_libname)
             shlib_install_location = os.path.join(
-                alusus_libs_install_location, dst_libname)
+                alusus_libs_install_location, *dst_libname)
 
             # Only copy the shared library if different.
             ret = common.copy_if_different(
@@ -180,26 +180,26 @@ def build_alusus(alusus_build_location: str,
         bins_to_install = []
         if alusus_target_triplet.value.platform == "linux":
             bins_to_install = [
-                ("wasm-ld", "wasm-ld")
+                (("llvm", "wasm-ld"), ("wasm-ld",))
             ]
             # TODO: Add more bins to install as needed here.
         elif alusus_target_triplet.value.platform == "darwin":
             bins_to_install = [
-                ("wasm-ld", "wasm-ld")
+                (("llvm", "wasm-ld"), ("wasm-ld",))
             ]
             # TODO: Add more bins to install as needed here.
         # TODO: Add more logic for other targets here.
 
         std_bins_location = os.path.join(
-            alusus_build_location, "vcpkg_installed", alusus_target_triplet.value.vcpkg_target_triplet, "bin")
+            alusus_build_location, "vcpkg_installed", alusus_target_triplet.value.vcpkg_target_triplet, "tools")
         alusus_bins_install_location = os.path.join(
             alusus_install_location, alusus_bin_dirname)
 
         for source_binname, dst_binname in bins_to_install:
             bin_build_location = os.path.join(
-                std_bins_location, source_binname)
+                std_bins_location, *source_binname)
             bin_install_location = os.path.join(
-                alusus_bins_install_location, dst_binname)
+                alusus_bins_install_location, *dst_binname)
 
             # Only copy the shared library if different.
             ret = common.copy_if_different(

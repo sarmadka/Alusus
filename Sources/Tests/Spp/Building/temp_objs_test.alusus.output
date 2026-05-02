@@ -10,15 +10,15 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
 %C = type { i32 }
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %A = type { i32 }
 %M_B = type { i32 }
 %D = type { %A }
 %E = type { i32, %C }
-%__VaList = type { i32, i32, i8*, i8* }
+%__VaList = type { i32, i32, ptr, ptr }
 
 @"#anonymous0" = private constant [4 x i8] c"%d\0A\00"
 @"#anonymous1" = private constant [4 x i8] c"%d\0A\00"
@@ -40,273 +40,269 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 @"#anonymous16" = private constant [16 x i8] c"B initialized.\0A\00"
 @"#anonymous17" = private constant [15 x i8] c"B terminated.\0A\00"
 @"#anonymous18" = private constant [16 x i8] c"C initialized.\0A\00"
-@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__constructor__1, i32* null }]
-@llvm.global_dtors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__destructor__2, i32* null }]
+@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__constructor__1, ptr null }]
+@llvm.global_dtors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__destructor__2, ptr null }]
 
 define void @"test()"() {
 "#block0":
   %"#temp0" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp0")
-  %0 = getelementptr %A, %A* %"#temp0", i32 0, i32 0
-  %1 = load i32, i32* %0
-  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous0", i32 0, i32 0), i32 %1)
-  call void @"A.~terminate(ref[A])"(%A* %"#temp0")
+  call void @"A.~init(ref[A])"(ptr %"#temp0")
+  %0 = getelementptr %A, ptr %"#temp0", i32 0, i32 0
+  %1 = load i32, ptr %0
+  %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous0", i32 %1)
+  call void @"A.~terminate(ref[A])"(ptr %"#temp0")
   %"#temp1" = alloca %M_B
-  call void @"M.B.~init(ref[M.B])"(%M_B* %"#temp1")
-  %3 = getelementptr %M_B, %M_B* %"#temp1", i32 0, i32 0
-  %4 = load i32, i32* %3
-  %5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous1", i32 0, i32 0), i32 %4)
-  call void @"M.B.~terminate(ref[M.B])"(%M_B* %"#temp1")
+  call void @"M.B.~init(ref[M.B])"(ptr %"#temp1")
+  %3 = getelementptr %M_B, ptr %"#temp1", i32 0, i32 0
+  %4 = load i32, ptr %3
+  %5 = call i32 (ptr, ...) @printf(ptr @"#anonymous1", i32 %4)
+  call void @"M.B.~terminate(ref[M.B])"(ptr %"#temp1")
   %"#temp2" = alloca %C
-  call void @"C.~init(ref[C],Int[32])"(%C* %"#temp2", i32 9)
-  %6 = getelementptr %C, %C* %"#temp2", i32 0, i32 0
-  %7 = load i32, i32* %6
-  %8 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous2", i32 0, i32 0), i32 %7)
-  call void @"C.~terminate(ref[C])"(%C* %"#temp2")
+  call void @"C.~init(ref[C],Int[32])"(ptr %"#temp2", i32 9)
+  %6 = getelementptr %C, ptr %"#temp2", i32 0, i32 0
+  %7 = load i32, ptr %6
+  %8 = call i32 (ptr, ...) @printf(ptr @"#anonymous2", i32 %7)
+  call void @"C.~terminate(ref[C])"(ptr %"#temp2")
   %"#temp3" = alloca %C
-  call void (%C*, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(%C* %"#temp3", i32 2, i32 9, i32 10)
-  %9 = getelementptr %C, %C* %"#temp3", i32 0, i32 0
-  %10 = load i32, i32* %9
-  %11 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous3", i32 0, i32 0), i32 %10)
-  call void @"C.~terminate(ref[C])"(%C* %"#temp3")
+  call void (ptr, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(ptr %"#temp3", i32 2, i32 9, i32 10)
+  %9 = getelementptr %C, ptr %"#temp3", i32 0, i32 0
+  %10 = load i32, ptr %9
+  %11 = call i32 (ptr, ...) @printf(ptr @"#anonymous3", i32 %10)
+  call void @"C.~terminate(ref[C])"(ptr %"#temp3")
   %"#temp4" = alloca %D
-  call void @D.__autoConstruct__(%D* %"#temp4")
-  %12 = getelementptr %D, %D* %"#temp4", i32 0, i32 0
-  %13 = getelementptr %A, %A* %12, i32 0, i32 0
-  %14 = load i32, i32* %13
-  %15 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous4", i32 0, i32 0), i32 %14)
-  call void @D.__autoDestruct__(%D* %"#temp4")
+  call void @D.__autoConstruct__(ptr %"#temp4")
+  %12 = getelementptr %D, ptr %"#temp4", i32 0, i32 0
+  %13 = getelementptr %A, ptr %12, i32 0, i32 0
+  %14 = load i32, ptr %13
+  %15 = call i32 (ptr, ...) @printf(ptr @"#anonymous4", i32 %14)
+  call void @D.__autoDestruct__(ptr %"#temp4")
   %e = alloca %E
-  call void @E.__autoConstruct__(%E* %e)
-  %16 = getelementptr %E, %E* %e, i32 0, i32 0
-  %17 = getelementptr %E, %E* %e, i32 0, i32 1
-  %18 = load i32, i32* %16
-  %19 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @"#anonymous13", i32 0, i32 0), i32 %18, %C* %17)
+  call void @E.__autoConstruct__(ptr %e)
+  %16 = getelementptr %E, ptr %e, i32 0, i32 0
+  %17 = getelementptr %E, ptr %e, i32 0, i32 1
+  %18 = load i32, ptr %16
+  %19 = call i32 (ptr, ...) @printf(ptr @"#anonymous13", i32 %18, ptr %17)
   %c = alloca %C
   %"#temp11" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp11")
-  %20 = getelementptr %A, %A* %"#temp11", i32 0, i32 0
+  call void @"A.~init(ref[A])"(ptr %"#temp11")
+  %20 = getelementptr %A, ptr %"#temp11", i32 0, i32 0
   %"#temp12" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp12")
-  %21 = getelementptr %A, %A* %"#temp12", i32 0, i32 0
-  %22 = load i32, i32* %20
-  %23 = load i32, i32* %21
-  call void (%C*, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(%C* %c, i32 2, i32 %22, i32 %23)
-  call void @"A.~terminate(ref[A])"(%A* %"#temp11")
-  call void @"A.~terminate(ref[A])"(%A* %"#temp12")
+  call void @"A.~init(ref[A])"(ptr %"#temp12")
+  %21 = getelementptr %A, ptr %"#temp12", i32 0, i32 0
+  %22 = load i32, ptr %20
+  %23 = load i32, ptr %21
+  call void (ptr, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(ptr %c, i32 2, i32 %22, i32 %23)
+  call void @"A.~terminate(ref[A])"(ptr %"#temp11")
+  call void @"A.~terminate(ref[A])"(ptr %"#temp12")
   %"#temp13" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp13")
-  %24 = getelementptr %A, %A* %"#temp13", i32 0, i32 0
+  call void @"A.~init(ref[A])"(ptr %"#temp13")
+  %24 = getelementptr %A, ptr %"#temp13", i32 0, i32 0
   %"#temp14" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp14")
-  %25 = getelementptr %A, %A* %"#temp14", i32 0, i32 0
-  %26 = load i32, i32* %24
-  %27 = load i32, i32* %25
+  call void @"A.~init(ref[A])"(ptr %"#temp14")
+  %25 = getelementptr %A, ptr %"#temp14", i32 0, i32 0
+  %26 = load i32, ptr %24
+  %27 = load i32, ptr %25
   call void (i32, ...) @"varArgFunc(Int[32],ArgPack[Int[32],0,0])"(i32 2, i32 %26, i32 %27)
-  call void @"A.~terminate(ref[A])"(%A* %"#temp13")
-  call void @"A.~terminate(ref[A])"(%A* %"#temp14")
-  %28 = load i32, i32* getelementptr inbounds (%C, %C* @"!globalC", i32 0, i32 0)
-  %29 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous14", i32 0, i32 0), i32 %28)
-  call void @E.__autoDestruct__(%E* %e)
-  call void @"C.~terminate(ref[C])"(%C* %c)
+  call void @"A.~terminate(ref[A])"(ptr %"#temp13")
+  call void @"A.~terminate(ref[A])"(ptr %"#temp14")
+  %28 = load i32, ptr @"!globalC"
+  %29 = call i32 (ptr, ...) @printf(ptr @"#anonymous14", i32 %28)
+  call void @E.__autoDestruct__(ptr %e)
+  call void @"C.~terminate(ref[C])"(ptr %c)
   ret void
 }
 
-define void @"A.~init(ref[A])"(%A* %this) {
+define void @"A.~init(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca %A*
-  store %A* %this, %A** %this1
-  %0 = load %A*, %A** %this1
-  %1 = getelementptr %A, %A* %0, i32 0, i32 0
-  store i32 7, i32* %1
-  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @"#anonymous5", i32 0, i32 0))
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = load ptr, ptr %this1
+  %1 = getelementptr %A, ptr %0, i32 0, i32 0
+  store i32 7, ptr %1
+  %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous5")
   ret void
 }
 
-declare i32 @printf(i8*, ...)
+declare i32 @printf(ptr, ...)
 
-define void @"A.~terminate(ref[A])"(%A* %this) {
+define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block4":
-  %this1 = alloca %A*
-  store %A* %this, %A** %this1
-  %0 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @"#anonymous6", i32 0, i32 0))
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous6")
   ret void
 }
 
-define void @"M.B.~init(ref[M.B])"(%M_B* %this) {
+define void @"M.B.~init(ref[M.B])"(ptr %this) {
 "#block13":
-  %this1 = alloca %M_B*
-  store %M_B* %this, %M_B** %this1
-  %0 = load %M_B*, %M_B** %this1
-  %1 = getelementptr %M_B, %M_B* %0, i32 0, i32 0
-  store i32 8, i32* %1
-  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @"#anonymous16", i32 0, i32 0))
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = load ptr, ptr %this1
+  %1 = getelementptr %M_B, ptr %0, i32 0, i32 0
+  store i32 8, ptr %1
+  %2 = call i32 (ptr, ...) @printf(ptr @"#anonymous16")
   ret void
 }
 
-define void @"M.B.~terminate(ref[M.B])"(%M_B* %this) {
+define void @"M.B.~terminate(ref[M.B])"(ptr %this) {
 "#block14":
-  %this1 = alloca %M_B*
-  store %M_B* %this, %M_B** %this1
-  %0 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @"#anonymous17", i32 0, i32 0))
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous17")
   ret void
 }
 
-define void @"C.~init(ref[C],Int[32])"(%C* %this, i32 %n) {
+define void @"C.~init(ref[C],Int[32])"(ptr %this, i32 %n) {
 "#block15":
-  %this1 = alloca %C*
-  store %C* %this, %C** %this1
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   %n2 = alloca i32
-  store i32 %n, i32* %n2
-  %0 = load %C*, %C** %this1
-  %1 = getelementptr %C, %C* %0, i32 0, i32 0
-  %2 = load i32, i32* %n2
-  store i32 %2, i32* %1
-  %3 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @"#anonymous18", i32 0, i32 0))
+  store i32 %n, ptr %n2
+  %0 = load ptr, ptr %this1
+  %1 = getelementptr %C, ptr %0, i32 0, i32 0
+  %2 = load i32, ptr %n2
+  store i32 %2, ptr %1
+  %3 = call i32 (ptr, ...) @printf(ptr @"#anonymous18")
   ret void
 }
 
-define void @"C.~terminate(ref[C])"(%C* %this) {
+define void @"C.~terminate(ref[C])"(ptr %this) {
 "#block12":
-  %this1 = alloca %C*
-  store %C* %this, %C** %this1
-  %0 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([15 x i8], [15 x i8]* @"#anonymous15", i32 0, i32 0))
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous15")
   ret void
 }
 
-define void @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(%C* %this, i32 %count, ...) {
+define void @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(ptr %this, i32 %count, ...) {
 "#block6":
   %__vaList = alloca %__VaList
-  %0 = bitcast %__VaList* %__vaList to i8*
-  call void @llvm.va_start(i8* %0)
-  %this1 = alloca %C*
-  store %C* %this, %C** %this1
+  call void @llvm.va_start(ptr %__vaList)
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   %count2 = alloca i32
-  store i32 %count, i32* %count2
-  %1 = load %C*, %C** %this1
-  %2 = getelementptr %C, %C* %1, i32 0, i32 0
-  store i32 0, i32* %2
+  store i32 %count, ptr %count2
+  %0 = load ptr, ptr %this1
+  %1 = getelementptr %C, ptr %0, i32 0, i32 0
+  store i32 0, ptr %1
   br label %"#block7"
 
 "#block7":                                        ; preds = %"#block8", %"#block6"
-  %3 = load i32, i32* %count2
-  %4 = sub nsw i32 %3, 1
-  store i32 %4, i32* %count2
-  %5 = icmp sgt i32 %3, 0
-  br i1 %5, label %"#block8", label %"#block9"
+  %2 = load i32, ptr %count2
+  %3 = sub nsw i32 %2, 1
+  store i32 %3, ptr %count2
+  %4 = icmp sgt i32 %2, 0
+  br i1 %4, label %"#block8", label %"#block9"
 
 "#block8":                                        ; preds = %"#block7"
-  %6 = va_arg %__VaList* %__vaList, i32
-  %7 = load %C*, %C** %this1
-  %8 = getelementptr %C, %C* %7, i32 0, i32 0
-  %9 = load i32, i32* %8
-  %10 = add nsw i32 %9, %6
-  store i32 %10, i32* %8
+  %5 = va_arg ptr %__vaList, i32
+  %6 = load ptr, ptr %this1
+  %7 = getelementptr %C, ptr %6, i32 0, i32 0
+  %8 = load i32, ptr %7
+  %9 = add nsw i32 %8, %5
+  store i32 %9, ptr %7
   br label %"#block7"
 
 "#block9":                                        ; preds = %"#block7"
-  %11 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([30 x i8], [30 x i8]* @"#anonymous11", i32 0, i32 0))
-  %12 = bitcast %__VaList* %__vaList to i8*
-  call void @llvm.va_end(i8* %12)
+  %10 = call i32 (ptr, ...) @printf(ptr @"#anonymous11")
+  call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
-define void @D.__autoConstruct__(%D* %this) {
+define void @D.__autoConstruct__(ptr %this) {
 "#block1":
-  %0 = getelementptr %D, %D* %this, i32 0, i32 0
-  call void @"A.~init(ref[A])"(%A* %0)
+  %0 = getelementptr %D, ptr %this, i32 0, i32 0
+  call void @"A.~init(ref[A])"(ptr %0)
   ret void
 }
 
-define void @D.__autoDestruct__(%D* %this) {
+define void @D.__autoDestruct__(ptr %this) {
 "#block3":
-  %0 = getelementptr %D, %D* %this, i32 0, i32 0
-  call void @"A.~terminate(ref[A])"(%A* %0)
+  %0 = getelementptr %D, ptr %this, i32 0, i32 0
+  call void @"A.~terminate(ref[A])"(ptr %0)
   ret void
 }
 
-define void @E.__autoConstruct__(%E* %this) {
+define void @E.__autoConstruct__(ptr %this) {
 "#block5":
   %"#temp5" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp5")
-  %0 = getelementptr %A, %A* %"#temp5", i32 0, i32 0
-  %1 = getelementptr %E, %E* %this, i32 0, i32 0
-  %2 = load i32, i32* %0
-  store i32 %2, i32* %1
-  call void @"A.~terminate(ref[A])"(%A* %"#temp5")
-  %3 = getelementptr %E, %E* %this, i32 0, i32 1
+  call void @"A.~init(ref[A])"(ptr %"#temp5")
+  %0 = getelementptr %A, ptr %"#temp5", i32 0, i32 0
+  %1 = getelementptr %E, ptr %this, i32 0, i32 0
+  %2 = load i32, ptr %0
+  store i32 %2, ptr %1
+  call void @"A.~terminate(ref[A])"(ptr %"#temp5")
+  %3 = getelementptr %E, ptr %this, i32 0, i32 1
   %"#temp6" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp6")
-  %4 = getelementptr %A, %A* %"#temp6", i32 0, i32 0
+  call void @"A.~init(ref[A])"(ptr %"#temp6")
+  %4 = getelementptr %A, ptr %"#temp6", i32 0, i32 0
   %"#temp7" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp7")
-  %5 = getelementptr %A, %A* %"#temp7", i32 0, i32 0
-  %6 = load i32, i32* %4
-  %7 = load i32, i32* %5
-  call void (%C*, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(%C* %3, i32 3, i32 %6, i32 %7, i32 5)
-  call void @"A.~terminate(ref[A])"(%A* %"#temp6")
-  call void @"A.~terminate(ref[A])"(%A* %"#temp7")
+  call void @"A.~init(ref[A])"(ptr %"#temp7")
+  %5 = getelementptr %A, ptr %"#temp7", i32 0, i32 0
+  %6 = load i32, ptr %4
+  %7 = load i32, ptr %5
+  call void (ptr, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(ptr %3, i32 3, i32 %6, i32 %7, i32 5)
+  call void @"A.~terminate(ref[A])"(ptr %"#temp6")
+  call void @"A.~terminate(ref[A])"(ptr %"#temp7")
   %"#temp8" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp8")
-  %8 = getelementptr %A, %A* %"#temp8", i32 0, i32 0
+  call void @"A.~init(ref[A])"(ptr %"#temp8")
+  %8 = getelementptr %A, ptr %"#temp8", i32 0, i32 0
   %"#temp9" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp9")
-  %9 = getelementptr %A, %A* %"#temp9", i32 0, i32 0
+  call void @"A.~init(ref[A])"(ptr %"#temp9")
+  %9 = getelementptr %A, ptr %"#temp9", i32 0, i32 0
   %"#temp10" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp10")
-  %10 = getelementptr %A, %A* %"#temp10", i32 0, i32 0
-  %11 = load i32, i32* %8
-  %12 = load i32, i32* %9
-  %13 = load i32, i32* %10
+  call void @"A.~init(ref[A])"(ptr %"#temp10")
+  %10 = getelementptr %A, ptr %"#temp10", i32 0, i32 0
+  %11 = load i32, ptr %8
+  %12 = load i32, ptr %9
+  %13 = load i32, ptr %10
   call void (i32, ...) @"varArgFunc(Int[32],ArgPack[Int[32],0,0])"(i32 3, i32 %11, i32 %12, i32 %13)
-  call void @"A.~terminate(ref[A])"(%A* %"#temp8")
-  call void @"A.~terminate(ref[A])"(%A* %"#temp9")
-  call void @"A.~terminate(ref[A])"(%A* %"#temp10")
+  call void @"A.~terminate(ref[A])"(ptr %"#temp8")
+  call void @"A.~terminate(ref[A])"(ptr %"#temp9")
+  call void @"A.~terminate(ref[A])"(ptr %"#temp10")
   ret void
 }
 
 define void @"varArgFunc(Int[32],ArgPack[Int[32],0,0])"(i32 %count, ...) {
 "#block10":
   %__vaList = alloca %__VaList
-  %0 = bitcast %__VaList* %__vaList to i8*
-  call void @llvm.va_start(i8* %0)
+  call void @llvm.va_start(ptr %__vaList)
   %count1 = alloca i32
-  store i32 %count, i32* %count1
-  %1 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([12 x i8], [12 x i8]* @"#anonymous12", i32 0, i32 0))
-  %2 = bitcast %__VaList* %__vaList to i8*
-  call void @llvm.va_end(i8* %2)
+  store i32 %count, ptr %count1
+  %0 = call i32 (ptr, ...) @printf(ptr @"#anonymous12")
+  call void @llvm.va_end(ptr %__vaList)
   ret void
 }
 
-; Function Attrs: nounwind
-declare void @llvm.va_start(i8*) #0
+; Function Attrs: nocallback nofree nosync nounwind willreturn
+declare void @llvm.va_start(ptr) #0
 
-; Function Attrs: nounwind
-declare void @llvm.va_end(i8*) #0
+; Function Attrs: nocallback nofree nosync nounwind willreturn
+declare void @llvm.va_end(ptr) #0
 
-define void @E.__autoDestruct__(%E* %this) {
+define void @E.__autoDestruct__(ptr %this) {
 "#block11":
-  %0 = getelementptr %E, %E* %this, i32 0, i32 1
-  call void @"C.~terminate(ref[C])"(%C* %0)
+  %0 = getelementptr %E, ptr %this, i32 0, i32 1
+  call void @"C.~terminate(ref[C])"(ptr %0)
   ret void
 }
 
 define void @__constructor__1() {
 "#block16":
   %"#temp15" = alloca %A
-  call void @"A.~init(ref[A])"(%A* %"#temp15")
-  %0 = getelementptr %A, %A* %"#temp15", i32 0, i32 0
-  %1 = load i32, i32* %0
-  call void (%C*, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(%C* @"!globalC", i32 2, i32 %1, i32 2)
-  call void @"A.~terminate(ref[A])"(%A* %"#temp15")
+  call void @"A.~init(ref[A])"(ptr %"#temp15")
+  %0 = getelementptr %A, ptr %"#temp15", i32 0, i32 0
+  %1 = load i32, ptr %0
+  call void (ptr, i32, ...) @"C.~init(ref[C],Int[32],ArgPack[Int[32],1,0])"(ptr @"!globalC", i32 2, i32 %1, i32 2)
+  call void @"A.~terminate(ref[A])"(ptr %"#temp15")
   ret void
 }
 
 define void @__destructor__2() {
 "#block17":
-  call void @"C.~terminate(ref[C])"(%C* @"!globalC")
+  call void @"C.~terminate(ref[C])"(ptr @"!globalC")
   ret void
 }
 
-attributes #0 = { nounwind }
+attributes #0 = { nocallback nofree nosync nounwind willreturn }
 ------------------------------------------------------------

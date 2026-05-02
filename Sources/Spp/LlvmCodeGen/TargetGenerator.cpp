@@ -454,6 +454,7 @@ Bool TargetGenerator::prepareFunctionBody(
     auto argType = argTypes->getElement(i);
     if (argType->getLlvmType()->isStructTy()) {
       auto loadInst = block->getIrBuilder()->CreateLoad(argType->getLlvmType(), &*iter);
+      loadInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(argType->getLlvmType()));
       args->add(newSrdObj<Value>(loadInst, false));
     } else {
       args->add(newSrdObj<Value>(iter, false));
@@ -463,7 +464,10 @@ Bool TargetGenerator::prepareFunctionBody(
   // Is this a variadic funciton?
   if (funcWrapper->getFunctionType()->isVariadic()) {
     // Declare va_list var.
-    funcWrapper->llvmVaList = block->getIrBuilder()->CreateAlloca(this->buildTarget->getVaListType(), 0, "__vaList");
+    auto vaListAlloca = block->getIrBuilder()->CreateAlloca(this->buildTarget->getVaListType(), 0, "__vaList");
+    vaListAlloca->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(this->buildTarget->getVaListType()));
+    funcWrapper->llvmVaList = vaListAlloca;
+    
     // Add declaration for llvm.va_start function.
     llvm::Function *llvmVaStartFunc = llvmModule->getFunction("llvm.va_start");
     if (llvmVaStartFunc == 0) {
@@ -554,13 +558,16 @@ Bool TargetGenerator::generateLocalVariable(
   auto valWrapper = ti_cast<Value>(defaultValue);
 
   SharedPtr<Variable> var = newSrdObj<Variable>();
-  var->setLlvmAllocaInst(block->getIrBuilder()->CreateAlloca(typeWrapper->getLlvmType(), 0, name));
+  auto allocaInst = block->getIrBuilder()->CreateAlloca(typeWrapper->getLlvmType(), 0, name);
+  allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(typeWrapper->getLlvmType()));
+  var->setLlvmAllocaInst(allocaInst);
   #if __APPLE__
     // TODO: This alignment should depend on build target rather than current OS.
     var->getLlvmAllocaInst()->setAlignment(llvm::MaybeAlign(16));
   #endif
   if (valWrapper != 0) {
-    block->getIrBuilder()->CreateStore(valWrapper->getLlvmValue(), var->getLlvmAllocaInst());
+    auto storeInst = block->getIrBuilder()->CreateStore(valWrapper->getLlvmValue(), var->getLlvmAllocaInst());
+    storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(typeWrapper->getLlvmType()));
   }
 
   result = var;
@@ -977,49 +984,116 @@ Bool TargetGenerator::generateMemberVarReference(
   PREPARE_ARG(memberVarDef, tgMemberVarDef, Variable);
   PREPARE_ARG(structType, tgStructType, Type);
 
-  llvm::Value *llvmPtr;
+  llvm::IRBuilder<> *builder = block->getIrBuilder();
+  auto &ctx = *this->buildTarget->getLlvmContext();
+
+  llvm::Value *basePtr = nullptr;
+  llvm::Type *structLlvmTy = nullptr;
+
   if (tgStructType->isDerivedFrom<PointerType>()) {
-    llvmPtr = tgStructRef->getLlvmValue();
+    auto ptrType = ti_cast<PointerType>(tgStructType);
+    ASSERT(ptrType != nullptr);
+    structLlvmTy = ptrType->getContentType()->getLlvmType();
+    basePtr = tgStructRef->getLlvmValue(); // already ptr-to-struct
   } else {
-    llvmPtr = block->getIrBuilder()->CreateAlloca(tgStructType->getLlvmType(), 0, "");
-    block->getIrBuilder()->CreateStore(tgStructRef->getLlvmValue(), llvmPtr);
+    structLlvmTy = tgStructType->getLlvmType(); // struct type
+    auto allocaInst = builder->CreateAlloca(structLlvmTy, nullptr, "");
+    allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(structLlvmTy));
+    basePtr = allocaInst;
+    auto storeInst = builder->CreateStore(tgStructRef->getLlvmValue(), basePtr);
+    storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(structLlvmTy));
   }
 
-  auto zero = llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(32, 0, true));
+  auto zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 0);
   auto index = llvm::ConstantInt::get(
-    *this->buildTarget->getLlvmContext(), llvm::APInt(32, tgMemberVarDef->getLlvmStructIndex(), true)
+    llvm::Type::getInt32Ty(ctx),
+    tgMemberVarDef->getLlvmStructIndex()
   );
-  auto llvmResult = block->getIrBuilder()->CreateGEP(
-    llvmPtr, llvm::makeArrayRef(std::vector<llvm::Value*>({ zero, index })), ""
+
+  llvm::Value *llvmResult = builder->CreateGEP(
+    structLlvmTy,          // pointee type: the struct
+    basePtr,               // ptr-to-struct
+    { zero, index },       // [0, fieldIndex]
+    ""
   );
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
 
 
 Bool TargetGenerator::generateArrayElementReference(
-  TiObject *context, TiObject *arrayType, TiObject *elementType, TiObject *index, TiObject *arrayRef,
-  TioSharedPtr &result
+  TiObject *context, TiObject *arrayType, TiObject *elementType,
+  TiObject *index, TiObject *arrayRef, TioSharedPtr &result
 ) {
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(arrayRef, tgArrayRef, Value);
   PREPARE_ARG(arrayType, tgArrayType, Type);
+  PREPARE_ARG(elementType, tgElementType, Type);
   PREPARE_ARG(index, tgIndex, Value);
 
-  llvm::Value *llvmPtr;
-  if (tgArrayType->isDerivedFrom<PointerType>()) {
-    llvmPtr = tgArrayRef->getLlvmValue();
-  } else {
-    llvmPtr = block->getIrBuilder()->CreateAlloca(tgArrayType->getLlvmType(), 0, "");
-    block->getIrBuilder()->CreateStore(tgArrayRef->getLlvmValue(), llvmPtr);
+  llvm::IRBuilder<> *builder = block->getIrBuilder();
+  auto &ctx = *this->buildTarget->getLlvmContext();
+
+  llvm::Value *basePtr = nullptr;
+  llvm::Type *pointeeTy = nullptr;
+
+  // CASE 1: array value ([N x T])
+  if (auto arrTy = ti_cast<ArrayType>(tgArrayType)) {
+    pointeeTy = arrTy->getLlvmType(); // [N x T]
+    auto allocaInst = builder->CreateAlloca(pointeeTy);
+    allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(pointeeTy));
+    basePtr = allocaInst;
+    auto storeInst = builder->CreateStore(tgArrayRef->getLlvmValue(), basePtr);
+    storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(pointeeTy));
+
+    auto zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 0);
+
+    llvm::Value *elemPtr = builder->CreateGEP(
+      pointeeTy,
+      basePtr,
+      { zero, tgIndex->getLlvmValue() }
+    );
+
+    result = newSrdObj<Value>(elemPtr, true);
+    return true;
   }
 
-  auto zero = llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(32, 0, true));
-  auto llvmResult = block->getIrBuilder()->CreateGEP(
-    llvmPtr, llvm::makeArrayRef(std::vector<llvm::Value*>({ zero, tgIndex->getLlvmValue() })), ""
-  );
-  result = newSrdObj<Value>(llvmResult, false);
-  return true;
+  // CASE 2: pointer to array ([N x T]*)
+  if (auto ptrTy = ti_cast<PointerType>(tgArrayType)) {
+    auto contentTy = ptrTy->getContentType()->getLlvmType();
+
+    if (contentTy->isArrayTy()) {
+      pointeeTy = contentTy; // [N x T]
+      basePtr = tgArrayRef->getLlvmValue();
+
+      auto zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 0);
+
+      llvm::Value *elemPtr = builder->CreateGEP(
+        pointeeTy,
+        basePtr,
+        { zero, tgIndex->getLlvmValue() }
+      );
+
+      result = newSrdObj<Value>(elemPtr, true);
+      return true;
+    }
+
+    // CASE 3: pointer to element (T*)
+    pointeeTy = contentTy; // T
+    basePtr = tgArrayRef->getLlvmValue();
+
+    llvm::Value *elemPtr = builder->CreateGEP(
+      pointeeTy,
+      basePtr,
+      tgIndex->getLlvmValue()
+    );
+
+    result = newSrdObj<Value>(elemPtr, true);
+    return true;
+  }
+
+  throw EXCEPTION(GenericException, S("Invalid array reference type."));
 }
 
 
@@ -1028,7 +1102,14 @@ Bool TargetGenerator::generateDereference(
 ) {
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(srcVal, cgSrcVal, Value);
-  auto llvmResult = block->getIrBuilder()->CreateLoad(cgSrcVal->getLlvmValue());
+  PREPARE_ARG(contentType, cgContentType, Type);
+
+  auto llvmResult = block->getIrBuilder()->CreateLoad(
+    cgContentType->getLlvmType(),
+    cgSrcVal->getLlvmValue()
+  );
+  llvmResult->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(cgContentType->getLlvmType()));
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1040,7 +1121,14 @@ Bool TargetGenerator::generateAssign(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(srcVal, cgSrcVal, Value);
   PREPARE_ARG(destRef, cgDestRef, Value);
-  block->getIrBuilder()->CreateStore(cgSrcVal->getLlvmValue(), cgDestRef->getLlvmValue());
+  PREPARE_ARG(contentType, cgContentType, Type);
+
+  auto storeInst = block->getIrBuilder()->CreateStore(
+    cgSrcVal->getLlvmValue(),
+    cgDestRef->getLlvmValue()
+  );
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(cgContentType->getLlvmType()));
+
   result = getSharedPtr(destRef);
   return true;
 }
@@ -1053,44 +1141,59 @@ Bool TargetGenerator::generateFunctionPointer(
   PREPARE_ARG(function, funcWrapper, Function);
   PREPARE_ARG(context, block, Block);
 
-  // // Make sure the target function is declared in the current module.
   llvm::Module *llvmMod = this->perFunctionModules ?
     block->getFunction()->llvmModule.get() : this->buildTarget->getGlobalLlvmModule();
+
   llvm::Function *llvmFunc = llvmMod->getFunction(funcWrapper->getName().getBuf());
-  if (llvmFunc == 0) {
-    // This function is in a different module, so we'll have to define it.
+  if (llvmFunc == nullptr) {
     llvmFunc = llvm::Function::Create(
-      funcWrapper->getFunctionType()->getLlvmFunctionType(), llvm::Function::ExternalLinkage,
-      funcWrapper->getName().getBuf(), llvmMod
+      funcWrapper->getFunctionType()->getLlvmFunctionType(),
+      llvm::Function::ExternalLinkage,
+      funcWrapper->getName().getBuf(),
+      llvmMod
     );
-    // C ABI compatibility:
-    // Add sret attribute for struct return type which is passed as first pointer parameter.
+
     auto retType = funcWrapper->getFunctionType()->getRetType();
     Int paramOffset = 0;
     if (retType->getLlvmType()->isStructTy()) {
-      llvmFunc->addParamAttr(0, llvm::Attribute::get(
-        *this->buildTarget->getLlvmContext(), llvm::Attribute::StructRet, retType->getLlvmType()));
+      llvmFunc->addParamAttr(
+        0,
+        llvm::Attribute::get(
+          *this->buildTarget->getLlvmContext(),
+          llvm::Attribute::StructRet,
+          retType->getLlvmType()
+        )
+      );
       paramOffset = 1;
     }
-    // C ABI compatibility:
-    // Add byval and align attributes for struct parameters which will
-    // be passed by pointer.
+
     auto argTypes = funcWrapper->getFunctionType()->getArgs();
     for (Int i = 0; i < argTypes->getElementCount(); ++i) {
       auto argType = argTypes->getElement(i);
       if (argType->getLlvmType()->isStructTy()) {
-        llvmFunc->addParamAttr(i+ paramOffset, llvm::Attribute::getWithByValType(
-          *this->buildTarget->getLlvmContext(), argType->getLlvmType()));
-        llvmFunc->addParamAttr(i + paramOffset, llvm::Attribute::getWithAlignment(
-          *this->buildTarget->getLlvmContext(), llvm::Align(8)));
+        llvmFunc->addParamAttr(
+          i + paramOffset,
+          llvm::Attribute::getWithByValType(
+            *this->buildTarget->getLlvmContext(),
+            argType->getLlvmType()
+          )
+        );
+        llvmFunc->addParamAttr(
+          i + paramOffset,
+          llvm::Attribute::getWithAlignment(
+            *this->buildTarget->getLlvmContext(),
+            llvm::Align(8)
+          )
+        );
       }
     }
   }
 
-  // Generate the func pointer.
   auto llvmResult = llvm::ConstantExpr::getBitCast(
-    llvmFunc, functionPtrTypeWrapper->getLlvmType()
+    llvmFunc,
+    functionPtrTypeWrapper->getLlvmType()
   );
+
   result = newSrdObj<Value>(llvmResult, true);
   return true;
 }
@@ -1105,6 +1208,7 @@ Bool TargetGenerator::generateFunctionCall(
 
   auto argTypes = funcWrapper->getFunctionType()->getArgs();
   auto retType = funcWrapper->getFunctionType()->getRetType();
+  llvm::IRBuilder<> *builder = block->getIrBuilder();
 
   // Prepare function args.
   std::vector<llvm::Value*> args;
@@ -1112,9 +1216,11 @@ Bool TargetGenerator::generateFunctionCall(
 
   // C ABI compatibility:
   // If return type is a struct, allocate space and pass as first sret pointer argument.
-  llvm::Value *sretPtr = 0;
+  llvm::Value *sretPtr = nullptr;
   if (retType->getLlvmType()->isStructTy()) {
-    sretPtr = block->getIrBuilder()->CreateAlloca(retType->getLlvmType(), 0, "");
+    auto allocaInst = builder->CreateAlloca(retType->getLlvmType(), nullptr, "");
+    allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(retType->getLlvmType()));
+    sretPtr = allocaInst;
     args.push_back(sretPtr);
     paramOffset = 1;
   }
@@ -1137,65 +1243,110 @@ Bool TargetGenerator::generateFunctionCall(
         // Remove the now-unused load instruction
         loadInst->eraseFromParent();
       } else {
-        auto allocaInst = block->getIrBuilder()->CreateAlloca(llvmValue->getType(), 0, "");
-        block->getIrBuilder()->CreateStore(llvmValue, allocaInst);
+        auto allocaInst = builder->CreateAlloca(llvmValue->getType(), nullptr, "");
+        allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(llvmValue->getType()));
+        auto storeInst = builder->CreateStore(llvmValue, allocaInst);
+        storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(llvmValue->getType()));
         llvmValue = allocaInst;
       }
     }
 
     args.push_back(llvmValue);
   }
+
   // Make sure a declaration of this function exists in the current module.
   llvm::Module *llvmMod = this->perFunctionModules ?
     block->getFunction()->llvmModule.get() : this->buildTarget->getGlobalLlvmModule();
   llvm::Function *llvmFunc = llvmMod->getFunction(funcWrapper->getName().getBuf());
-  if (llvmFunc == 0) {
+  if (llvmFunc == nullptr) {
     // This function is in a different module, so we'll have to define it.
     llvmFunc = llvm::Function::Create(
-      funcWrapper->getFunctionType()->getLlvmFunctionType(), llvm::Function::ExternalLinkage,
-      funcWrapper->getName().getBuf(), llvmMod
+      funcWrapper->getFunctionType()->getLlvmFunctionType(),
+      llvm::Function::ExternalLinkage,
+      funcWrapper->getName().getBuf(),
+      llvmMod
     );
     // C ABI compatibility:
     // Add sret attribute for struct return type which is passed as first pointer parameter.
     if (retType->getLlvmType()->isStructTy()) {
-      llvmFunc->addParamAttr(0, llvm::Attribute::get(
-        *this->buildTarget->getLlvmContext(), llvm::Attribute::StructRet, retType->getLlvmType()));
+      llvmFunc->addParamAttr(
+        0,
+        llvm::Attribute::get(
+          *this->buildTarget->getLlvmContext(),
+          llvm::Attribute::StructRet,
+          retType->getLlvmType()
+        )
+      );
     }
     // Add byval and align attributes for struct parameters which will
     // be passed by pointer.
     for (Int i = 0; i < argTypes->getElementCount(); ++i) {
       auto argType = argTypes->getElement(i);
       if (argType->getLlvmType()->isStructTy()) {
-        llvmFunc->addParamAttr(i + paramOffset, llvm::Attribute::getWithByValType(
-          *this->buildTarget->getLlvmContext(), argType->getLlvmType()));
-        llvmFunc->addParamAttr(i + paramOffset, llvm::Attribute::getWithAlignment(
-          *this->buildTarget->getLlvmContext(), llvm::Align(8)));
+        llvmFunc->addParamAttr(
+          i + paramOffset,
+          llvm::Attribute::getWithByValType(
+            *this->buildTarget->getLlvmContext(),
+            argType->getLlvmType()
+          )
+        );
+        llvmFunc->addParamAttr(
+          i + paramOffset,
+          llvm::Attribute::getWithAlignment(
+            *this->buildTarget->getLlvmContext(),
+            llvm::Align(8)
+          )
+        );
       }
     }
   }
-  // Create the call.
-  auto llvmCall = block->getIrBuilder()->CreateCall(llvmFunc, args);
+
+  // Create the call (typed API).
+  auto llvmCall = builder->CreateCall(
+    funcWrapper->getFunctionType()->getLlvmFunctionType(),
+    llvmFunc,
+    args
+  );
+
   // C ABI compatibility:
   // Add sret attribute to call site for struct return.
   if (retType->getLlvmType()->isStructTy()) {
-    llvmCall->addParamAttr(0, llvm::Attribute::get(
-      *this->buildTarget->getLlvmContext(), llvm::Attribute::StructRet, retType->getLlvmType()));
+    llvmCall->addParamAttr(
+      0,
+      llvm::Attribute::get(
+        *this->buildTarget->getLlvmContext(),
+        llvm::Attribute::StructRet,
+        retType->getLlvmType()
+      )
+    );
   }
   // C ABI compatibility:
   // Add byval and align attributes to call site for struct arguments.
   for (Int i = 0; i < argTypes->getElementCount() && i < arguments->getElementCount(); ++i) {
     auto argType = argTypes->getElement(i);
     if (argType->getLlvmType()->isStructTy()) {
-      llvmCall->addParamAttr(i + paramOffset, llvm::Attribute::getWithByValType(
-        *this->buildTarget->getLlvmContext(), argType->getLlvmType()));
-      llvmCall->addParamAttr(i + paramOffset, llvm::Attribute::getWithAlignment(
-        *this->buildTarget->getLlvmContext(), llvm::Align(8)));
+      llvmCall->addParamAttr(
+        i + paramOffset,
+        llvm::Attribute::getWithByValType(
+          *this->buildTarget->getLlvmContext(),
+          argType->getLlvmType()
+        )
+      );
+      llvmCall->addParamAttr(
+        i + paramOffset,
+        llvm::Attribute::getWithAlignment(
+          *this->buildTarget->getLlvmContext(),
+          llvm::Align(8)
+        )
+      );
     }
   }
+
   // C ABI compatibility:
   // If return type is struct, load the result from sret pointer.
   if (retType->getLlvmType()->isStructTy()) {
-    auto loadInst = block->getIrBuilder()->CreateLoad(retType->getLlvmType(), sretPtr);
+    auto loadInst = builder->CreateLoad(retType->getLlvmType(), sretPtr);
+    loadInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(retType->getLlvmType()));
     result = newSrdObj<Value>(loadInst, false);
   } else {
     result = newSrdObj<Value>(llvmCall, false);
@@ -1212,7 +1363,9 @@ Bool TargetGenerator::generateFunctionPtrCall(
   PREPARE_ARG(functionPtr, llvmFuncPtrBox, Value);
   PREPARE_ARG(functionPtrType, llvmFuncPtrTypeBox, PointerType);
 
-  // TODO: Validate provided args against functionptrType.
+  llvm::IRBuilder<> *builder = block->getIrBuilder();
+
+  // TODO: Validate provided args against functionPtrType.
 
   auto llvmFuncTypeBox = llvmFuncPtrTypeBox->getContentType().ti_cast_get<FunctionType>();
   if (llvmFuncTypeBox == 0) {
@@ -1227,9 +1380,11 @@ Bool TargetGenerator::generateFunctionPtrCall(
 
   // C ABI compatibility:
   // If return type is a struct, allocate space and pass as first sret pointer argument.
-  llvm::Value *sretPtr = 0;
+  llvm::Value *sretPtr = nullptr;
   if (retType->getLlvmType()->isStructTy()) {
-    sretPtr = block->getIrBuilder()->CreateAlloca(retType->getLlvmType(), 0, "");
+    auto allocaInst = builder->CreateAlloca(retType->getLlvmType(), nullptr, "");
+    allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(retType->getLlvmType()));
+    sretPtr = allocaInst;
     args.push_back(sretPtr);
     paramOffset = 1;
   }
@@ -1252,36 +1407,62 @@ Bool TargetGenerator::generateFunctionPtrCall(
         // Remove the now-unused load instruction
         loadInst->eraseFromParent();
       } else {
-        auto allocaInst = block->getIrBuilder()->CreateAlloca(llvmValue->getType(), 0, "");
-        block->getIrBuilder()->CreateStore(llvmValue, allocaInst);
+        auto allocaInst = builder->CreateAlloca(llvmValue->getType(), nullptr, "");
+        allocaInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(llvmValue->getType()));
+        auto storeInst = builder->CreateStore(llvmValue, allocaInst);
+        storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(llvmValue->getType()));
         llvmValue = allocaInst;
       }
     }
 
     args.push_back(llvmValue);
   }
-  auto llvmCall = block->getIrBuilder()->CreateCall(llvmFuncPtrBox->getLlvmValue(), args);
+
+  auto llvmCall = builder->CreateCall(
+    llvmFuncTypeBox->getLlvmFunctionType(),
+    llvmFuncPtrBox->getLlvmValue(),
+    args
+  );
+
   // C ABI compatibility:
   // Add sret attribute to call site for struct return.
   if (retType->getLlvmType()->isStructTy()) {
-    llvmCall->addParamAttr(0, llvm::Attribute::get(
-      *this->buildTarget->getLlvmContext(), llvm::Attribute::StructRet, retType->getLlvmType()));
+    llvmCall->addParamAttr(
+      0,
+      llvm::Attribute::get(
+        *this->buildTarget->getLlvmContext(),
+        llvm::Attribute::StructRet,
+        retType->getLlvmType()
+      )
+    );
   }
   // C ABI compatibility:
   // Add byval and align attributes to call site for struct arguments.
   for (Int i = 0; i < argTypes->getElementCount() && i < arguments->getElementCount(); ++i) {
     auto argType = argTypes->getElement(i);
     if (argType->getLlvmType()->isStructTy()) {
-      llvmCall->addParamAttr(i + paramOffset, llvm::Attribute::getWithByValType(
-        *this->buildTarget->getLlvmContext(), argType->getLlvmType()));
-      llvmCall->addParamAttr(i + paramOffset, llvm::Attribute::getWithAlignment(
-        *this->buildTarget->getLlvmContext(), llvm::Align(8)));
+      llvmCall->addParamAttr(
+        i + paramOffset,
+        llvm::Attribute::getWithByValType(
+          *this->buildTarget->getLlvmContext(),
+          argType->getLlvmType()
+        )
+      );
+      llvmCall->addParamAttr(
+        i + paramOffset,
+        llvm::Attribute::getWithAlignment(
+          *this->buildTarget->getLlvmContext(),
+          llvm::Align(8)
+        )
+      );
     }
   }
+
   // C ABI compatibility:
   // If return type is struct, load the result from sret pointer.
   if (retType->getLlvmType()->isStructTy()) {
-    auto loadInst = block->getIrBuilder()->CreateLoad(retType->getLlvmType(), sretPtr);
+    auto loadInst = builder->CreateLoad(retType->getLlvmType(), sretPtr);
+    loadInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(retType->getLlvmType()));
     result = newSrdObj<Value>(loadInst, false);
   } else {
     result = newSrdObj<Value>(llvmCall, false);
@@ -1295,44 +1476,58 @@ Bool TargetGenerator::generateReturn(
 ) {
   PREPARE_ARG(context, block, Block);
 
-  // Is this a variadic function?
+  llvm::IRBuilder<> *builder = block->getIrBuilder();
+
+  // Handle variadic cleanup (llvm.va_end)
   if (block->getFunction()->getFunctionType()->isVariadic()) {
     llvm::Module *llvmModule = this->perFunctionModules ?
       block->getFunction()->llvmModule.get() : this->buildTarget->getGlobalLlvmModule();
-    // Add declaration for llvm.va_end function.
+
     llvm::Function *llvmVaEndFunc = llvmModule->getFunction("llvm.va_end");
-    if (llvmVaEndFunc == 0) {
-      // This function is in a different module, so we'll have to define it.
+    if (llvmVaEndFunc == nullptr) {
       llvmVaEndFunc = llvm::Function::Create(
-        this->getVaStartEndFnType(), llvm::Function::ExternalLinkage, "llvm.va_end", llvmModule
+        this->getVaStartEndFnType(),
+        llvm::Function::ExternalLinkage,
+        "llvm.va_end",
+        llvmModule
       );
     }
-    // Call llvm.va_end.
-    auto int8Type = llvm::Type::getIntNTy(*this->buildTarget->getLlvmContext(), 8);
+
+    auto int8Type = llvm::Type::getInt8Ty(*this->buildTarget->getLlvmContext());
     auto int8PtrType = int8Type->getPointerTo();
-    std::vector<llvm::Value*> vaArgs;
-    vaArgs.push_back(block->getIrBuilder()->CreateBitCast(block->getFunction()->llvmVaList, int8PtrType));
-    block->getIrBuilder()->CreateCall(llvmVaEndFunc, vaArgs);
+
+    llvm::Value *vaListPtr =
+      builder->CreateBitCast(block->getFunction()->llvmVaList, int8PtrType);
+
+    builder->CreateCall(
+      this->getVaStartEndFnType(),
+      llvmVaEndFunc,
+      { vaListPtr }
+    );
   }
 
-  if (retVal != 0) {
+  // Handle return value
+  if (retVal != nullptr) {
     PREPARE_ARG(retVal, retValBox, Value);
-    auto llvmRetVal = retValBox->getLlvmValue();
-    // C ABI compatibility:
-    // If return type is a struct, store the result to sret pointer and return void.
+    llvm::Value *llvmRetVal = retValBox->getLlvmValue();
+
+    // Struct return via sret pointer
     if (llvmRetVal->getType()->isStructTy()) {
-      if (block->getFunction()->llvmSretPtr != 0) {
-        block->getIrBuilder()->CreateStore(llvmRetVal, block->getFunction()->llvmSretPtr);
-        block->getIrBuilder()->CreateRetVoid();
+      if (block->getFunction()->llvmSretPtr != nullptr) {
+        auto storeInst = builder->CreateStore(llvmRetVal, block->getFunction()->llvmSretPtr);
+        storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(llvmRetVal->getType()));
+        builder->CreateRetVoid();
       } else {
-        throw EXCEPTION(GenericException, S("Struct return value provided but no sret pointer available."));
+        throw EXCEPTION(GenericException,
+          S("Struct return value provided but no sret pointer available."));
       }
     } else {
-      block->getIrBuilder()->CreateRet(llvmRetVal);
+      builder->CreateRet(llvmRetVal);
     }
   } else {
-    block->getIrBuilder()->CreateRetVoid();
+    builder->CreateRetVoid();
   }
+
   block->setTerminated(true);
   return true;
 }
@@ -1433,29 +1628,38 @@ Bool TargetGenerator::generateAdd(
   PREPARE_ARG(srcVal1, srcVal1Box, Value);
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, Type);
+
+  auto builder = block->getIrBuilder();
+
   if (tgType->isDerivedFrom<IntegerType>()) {
     llvm::Value *llvmResult;
     if (static_cast<IntegerType*>(tgType)->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateNSWAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     } else {
-      llvmResult = block->getIrBuilder()->CreateAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<FloatType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateFAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
+    auto llvmResult = builder->CreateFAdd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<PointerType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateGEP(
+  }
+  else if (tgType->isDerivedFrom<PointerType>()) {
+    auto ptrType = static_cast<PointerType*>(tgType);
+    auto elemTy = ptrType->getContentType()->getLlvmType();
+
+    auto llvmResult = builder->CreateGEP(
+      elemTy,
       srcVal1Box->getLlvmValue(),
-      llvm::makeArrayRef(std::vector<llvm::Value*>({ srcVal2Box->getLlvmValue() })), ""
+      { srcVal2Box->getLlvmValue() }
     );
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else {
-    throw EXCEPTION(GenericException, S("Invalid operation."));
   }
+
+  throw EXCEPTION(GenericException, S("Invalid operation."));
 }
 
 
@@ -1466,30 +1670,39 @@ Bool TargetGenerator::generateSub(
   PREPARE_ARG(srcVal1, srcVal1Box, Value);
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, Type);
+
+  auto builder = block->getIrBuilder();
+
   if (tgType->isDerivedFrom<IntegerType>()) {
     llvm::Value *llvmResult;
     if (static_cast<IntegerType*>(tgType)->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateNSWSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     } else {
-      llvmResult = block->getIrBuilder()->CreateSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<FloatType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateFSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
+    auto llvmResult = builder->CreateFSub(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<PointerType>()) {
-    auto negIndex = block->getIrBuilder()->CreateNeg(srcVal2Box->getLlvmValue());
-    auto llvmResult = block->getIrBuilder()->CreateGEP(
+  }
+  else if (tgType->isDerivedFrom<PointerType>()) {
+    auto ptrType = static_cast<PointerType*>(tgType);
+    auto elemTy = ptrType->getContentType()->getLlvmType();
+
+    auto negIndex = builder->CreateNeg(srcVal2Box->getLlvmValue());
+    auto llvmResult = builder->CreateGEP(
+      elemTy,
       srcVal1Box->getLlvmValue(),
-      llvm::makeArrayRef(std::vector<llvm::Value*>({ negIndex })), ""
+      { negIndex }
     );
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else {
-    throw EXCEPTION(GenericException, S("Invalid operation."));
   }
+
+  throw EXCEPTION(GenericException, S("Invalid operation."));
 }
 
 
@@ -1500,22 +1713,26 @@ Bool TargetGenerator::generateMul(
   PREPARE_ARG(srcVal1, srcVal1Box, Value);
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, Type);
+
+  auto builder = block->getIrBuilder();
+
   if (tgType->isDerivedFrom<IntegerType>()) {
     llvm::Value *llvmResult;
     if (static_cast<IntegerType*>(tgType)->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateNSWMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     } else {
-      llvmResult = block->getIrBuilder()->CreateMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<FloatType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateFMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
+    auto llvmResult = builder->CreateFMul(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else {
-    throw EXCEPTION(GenericException, S("Invalid operation."));
   }
+
+  throw EXCEPTION(GenericException, S("Invalid operation."));
 }
 
 
@@ -1526,22 +1743,26 @@ Bool TargetGenerator::generateDiv(
   PREPARE_ARG(srcVal1, srcVal1Box, Value);
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, Type);
+
+  auto builder = block->getIrBuilder();
+
   if (tgType->isDerivedFrom<IntegerType>()) {
     llvm::Value *llvmResult;
     if (static_cast<IntegerType*>(tgType)->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateSDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateSDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     } else {
-      llvmResult = block->getIrBuilder()->CreateUDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateUDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<FloatType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateFDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
+    auto llvmResult = builder->CreateFDiv(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else {
-    throw EXCEPTION(GenericException, S("Invalid operation."));
   }
+
+  throw EXCEPTION(GenericException, S("Invalid operation."));
 }
 
 
@@ -1553,22 +1774,25 @@ Bool TargetGenerator::generateRem(
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, Type);
 
+  auto builder = block->getIrBuilder();
+
   if (tgType->isDerivedFrom<IntegerType>()) {
     llvm::Value *llvmResult;
     if (static_cast<IntegerType*>(tgType)->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateSRem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateSRem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     } else {
-      llvmResult = block->getIrBuilder()->CreateURem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+      llvmResult = builder->CreateURem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     }
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<FloatType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateFRem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
+    auto llvmResult = builder->CreateFRem(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else {
-    throw EXCEPTION(GenericException, S("Invalid operation."));
   }
+
+  throw EXCEPTION(GenericException, S("Invalid operation."));
 }
 
 
@@ -1580,12 +1804,15 @@ Bool TargetGenerator::generateShr(
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, IntegerType);
 
+  auto builder = block->getIrBuilder();
+
   llvm::Value *llvmResult;
   if (tgType->isSigned()) {
-    llvmResult = block->getIrBuilder()->CreateAShr(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+    llvmResult = builder->CreateAShr(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
   } else {
-    llvmResult = block->getIrBuilder()->CreateLShr(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+    llvmResult = builder->CreateLShr(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
   }
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1599,7 +1826,11 @@ Bool TargetGenerator::generateShl(
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, IntegerType);
 
-  auto llvmResult = block->getIrBuilder()->CreateShl(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  auto llvmResult = block->getIrBuilder()->CreateShl(
+    srcVal1Box->getLlvmValue(),
+    srcVal2Box->getLlvmValue()
+  );
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1613,7 +1844,11 @@ Bool TargetGenerator::generateAnd(
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, IntegerType);
 
-  auto llvmResult = block->getIrBuilder()->CreateAnd(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  auto llvmResult = block->getIrBuilder()->CreateAnd(
+    srcVal1Box->getLlvmValue(),
+    srcVal2Box->getLlvmValue()
+  );
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1627,7 +1862,11 @@ Bool TargetGenerator::generateOr(
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, IntegerType);
 
-  auto llvmResult = block->getIrBuilder()->CreateOr(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  auto llvmResult = block->getIrBuilder()->CreateOr(
+    srcVal1Box->getLlvmValue(),
+    srcVal2Box->getLlvmValue()
+  );
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1641,7 +1880,11 @@ Bool TargetGenerator::generateXor(
   PREPARE_ARG(srcVal2, srcVal2Box, Value);
   PREPARE_ARG(type, tgType, IntegerType);
 
-  auto llvmResult = block->getIrBuilder()->CreateXor(srcVal1Box->getLlvmValue(), srcVal2Box->getLlvmValue());
+  auto llvmResult = block->getIrBuilder()->CreateXor(
+    srcVal1Box->getLlvmValue(),
+    srcVal2Box->getLlvmValue()
+  );
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1654,7 +1897,10 @@ Bool TargetGenerator::generateNot(
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, IntegerType);
 
-  auto llvmResult = block->getIrBuilder()->CreateNot(srcValBox->getLlvmValue());
+  auto llvmResult = block->getIrBuilder()->CreateNot(
+    srcValBox->getLlvmValue()
+  );
+
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1666,17 +1912,21 @@ Bool TargetGenerator::generateNeg(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, Type);
+
+  auto builder = block->getIrBuilder();
+
   if (tgType->isDerivedFrom<IntegerType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateNeg(srcValBox->getLlvmValue());
+    auto llvmResult = builder->CreateNeg(srcValBox->getLlvmValue());
     result = newSrdObj<Value>(llvmResult, false);
     return true;
-  } else if (tgType->isDerivedFrom<FloatType>()) {
-    auto llvmResult = block->getIrBuilder()->CreateFNeg(srcValBox->getLlvmValue());
-    result = newSrdObj<Value>(llvmResult, false);
-    return true;
-  } else {
-    throw EXCEPTION(GenericException, S("Invalid operation."));
   }
+  else if (tgType->isDerivedFrom<FloatType>()) {
+    auto llvmResult = builder->CreateFNeg(srcValBox->getLlvmValue());
+    result = newSrdObj<Value>(llvmResult, false);
+    return true;
+  }
+
+  throw EXCEPTION(GenericException, S("Invalid operation."));
 }
 
 
@@ -1686,35 +1936,34 @@ Bool TargetGenerator::generateEarlyInc(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(type, tgType, Type);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
   llvm::Value *llvmResult;
   if (tgType->isDerivedFrom<IntegerType>()) {
     auto integerType = static_cast<IntegerType*>(tgType);
     auto size = integerType->getSize();
-    if (integerType->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWAdd(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateAdd(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    }
-  } else if (tgType->isDerivedFrom<FloatType>()) {
+    llvmResult = integerType->isSigned()
+      ? builder->CreateNSWAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
+      : builder->CreateAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
-    if (size == 32) {
-      llvmResult = block->getIrBuilder()->CreateFAdd(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateFAdd(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
-      );
-    }
-  } else {
+    llvmResult = builder->CreateFAdd(
+      llvmVal,
+      size == 32
+        ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
+        : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
+    );
+  }
+  else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1726,35 +1975,34 @@ Bool TargetGenerator::generateEarlyDec(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(type, tgType, Type);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
   llvm::Value *llvmResult;
   if (tgType->isDerivedFrom<IntegerType>()) {
     auto integerType = static_cast<IntegerType*>(tgType);
     auto size = integerType->getSize();
-    if (integerType->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWSub(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateSub(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    }
-  } else if (tgType->isDerivedFrom<FloatType>()) {
+    llvmResult = integerType->isSigned()
+      ? builder->CreateNSWSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
+      : builder->CreateSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
-    if (size == 32) {
-      llvmResult = block->getIrBuilder()->CreateFSub(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateFSub(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
-      );
-    }
-  } else {
+    llvmResult = builder->CreateFSub(
+      llvmVal,
+      size == 32
+        ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
+        : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
+    );
+  }
+  else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = newSrdObj<Value>(llvmResult, false);
   return true;
 }
@@ -1766,35 +2014,34 @@ Bool TargetGenerator::generateLateInc(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(type, tgType, Type);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
   llvm::Value *llvmResult;
   if (tgType->isDerivedFrom<IntegerType>()) {
     auto integerType = static_cast<IntegerType*>(tgType);
     auto size = integerType->getSize();
-    if (integerType->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWAdd(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateAdd(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    }
-  } else if (tgType->isDerivedFrom<FloatType>()) {
+    llvmResult = integerType->isSigned()
+      ? builder->CreateNSWAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
+      : builder->CreateAdd(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
-    if (size == 32) {
-      llvmResult = block->getIrBuilder()->CreateFAdd(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateFAdd(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
-      );
-    }
-  } else {
+    llvmResult = builder->CreateFAdd(
+      llvmVal,
+      size == 32
+        ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
+        : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
+    );
+  }
+  else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = newSrdObj<Value>(llvmVal, false);
   return true;
 }
@@ -1806,35 +2053,34 @@ Bool TargetGenerator::generateLateDec(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(type, tgType, Type);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
   llvm::Value *llvmResult;
   if (tgType->isDerivedFrom<IntegerType>()) {
     auto integerType = static_cast<IntegerType*>(tgType);
     auto size = integerType->getSize();
-    if (integerType->isSigned()) {
-      llvmResult = block->getIrBuilder()->CreateNSWSub(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateSub(
-        llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true))
-      );
-    }
-  } else if (tgType->isDerivedFrom<FloatType>()) {
+    llvmResult = integerType->isSigned()
+      ? builder->CreateNSWSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)))
+      : builder->CreateSub(llvmVal, llvm::ConstantInt::get(*this->buildTarget->getLlvmContext(), llvm::APInt(size, 1, true)));
+  }
+  else if (tgType->isDerivedFrom<FloatType>()) {
     auto size = static_cast<FloatType*>(tgType)->getSize();
-    if (size == 32) {
-      llvmResult = block->getIrBuilder()->CreateFSub(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
-      );
-    } else {
-      llvmResult = block->getIrBuilder()->CreateFSub(
-        llvmVal, llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
-      );
-    }
-  } else {
+    llvmResult = builder->CreateFSub(
+      llvmVal,
+      size == 32
+        ? llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Float)1))
+        : llvm::ConstantFP::get(*this->buildTarget->getLlvmContext(), llvm::APFloat((Double)1))
+    );
+  }
+  else {
     throw EXCEPTION(GenericException, S("Invalid operation."));
   }
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = newSrdObj<Value>(llvmVal, false);
   return true;
 }
@@ -1847,14 +2093,17 @@ Bool TargetGenerator::generateShrAssign(
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, IntegerType);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
-  llvm::Value *llvmResult;
-  if (tgType->isSigned()) {
-    llvmResult = block->getIrBuilder()->CreateAShr(llvmVal, srcValBox->getLlvmValue());
-  } else {
-    llvmResult = block->getIrBuilder()->CreateLShr(llvmVal, srcValBox->getLlvmValue());
-  }
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
+  llvm::Value *llvmResult = tgType->isSigned()
+    ? builder->CreateAShr(llvmVal, srcValBox->getLlvmValue())
+    : builder->CreateLShr(llvmVal, srcValBox->getLlvmValue());
+
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = getSharedPtr(destVar);
   return true;
 }
@@ -1867,10 +2116,14 @@ Bool TargetGenerator::generateShlAssign(
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, IntegerType);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
-  llvm::Value *llvmResult;
-  llvmResult = block->getIrBuilder()->CreateShl(llvmVal, srcValBox->getLlvmValue());
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
+  auto llvmResult = builder->CreateShl(llvmVal, srcValBox->getLlvmValue());
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = getSharedPtr(destVar);
   return true;
 }
@@ -1883,10 +2136,14 @@ Bool TargetGenerator::generateAndAssign(
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, IntegerType);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
-  llvm::Value *llvmResult;
-  llvmResult = block->getIrBuilder()->CreateAnd(llvmVal, srcValBox->getLlvmValue());
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
+  auto llvmResult = builder->CreateAnd(llvmVal, srcValBox->getLlvmValue());
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = getSharedPtr(destVar);
   return true;
 }
@@ -1899,10 +2156,14 @@ Bool TargetGenerator::generateOrAssign(
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, IntegerType);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
-  llvm::Value *llvmResult;
-  llvmResult = block->getIrBuilder()->CreateOr(llvmVal, srcValBox->getLlvmValue());
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
+  auto llvmResult = builder->CreateOr(llvmVal, srcValBox->getLlvmValue());
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = getSharedPtr(destVar);
   return true;
 }
@@ -1915,10 +2176,14 @@ Bool TargetGenerator::generateXorAssign(
   PREPARE_ARG(destVar, destVarBox, Value);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, IntegerType);
-  auto llvmVal = block->getIrBuilder()->CreateLoad(destVarBox->getLlvmValue());
-  llvm::Value *llvmResult;
-  llvmResult = block->getIrBuilder()->CreateXor(llvmVal, srcValBox->getLlvmValue());
-  block->getIrBuilder()->CreateStore(llvmResult, destVarBox->getLlvmValue());
+
+  auto builder = block->getIrBuilder();
+  auto llvmVal = builder->CreateLoad(tgType->getLlvmType(), destVarBox->getLlvmValue());
+  llvmVal->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+
+  auto llvmResult = builder->CreateXor(llvmVal, srcValBox->getLlvmValue());
+  auto storeInst = builder->CreateStore(llvmResult, destVarBox->getLlvmValue());
+  storeInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
   result = getSharedPtr(destVar);
   return true;
 }
@@ -1930,13 +2195,19 @@ Bool TargetGenerator::generateNextArg(
   PREPARE_ARG(context, block, Block);
   PREPARE_ARG(srcVal, srcValBox, Value);
   PREPARE_ARG(type, tgType, Type);
+
+  auto builder = block->getIrBuilder();
   llvm::Value *llvmResult;
+
   if (tgType->getLlvmType()->isStructTy()) {
     auto llvmPtrType = tgType->getLlvmType()->getPointerTo();
-    auto llvmPtr = block->getIrBuilder()->CreateVAArg(srcValBox->getLlvmValue(), llvmPtrType);
-    llvmResult = block->getIrBuilder()->CreateLoad(llvmPtr);
-  } else {
-    llvmResult = block->getIrBuilder()->CreateVAArg(srcValBox->getLlvmValue(), tgType->getLlvmType());
+    auto llvmPtr = builder->CreateVAArg(srcValBox->getLlvmValue(), llvmPtrType);
+    auto loadInst = builder->CreateLoad(tgType->getLlvmType(), llvmPtr);
+    loadInst->setAlignment(this->buildTarget->getLlvmDataLayout()->getABITypeAlign(tgType->getLlvmType()));
+    llvmResult = loadInst;
+  }
+  else {
+    llvmResult = builder->CreateVAArg(srcValBox->getLlvmValue(), tgType->getLlvmType());
   }
 
   result = newSrdObj<Value>(llvmResult, false);

@@ -179,7 +179,7 @@ void StandardFactory::createCharGroupDefinitions()
   // AnyCharNoReturn = !('\\');
   this->set(S("root.LexerDefs.AnyCharNoReturn"), CharGroupDefinition::create(
     InvertCharGroupUnit::create(
-      SequenceCharGroupUnit::create(S("\n"), S("\n"))
+      RandomCharGroupUnit::create(S("\r\n"))
     )
   ));
 
@@ -632,7 +632,12 @@ void StandardFactory::createTokenDefinitions()
          MultiplyTerm::create({}, {
            {S("term"), CharGroupTerm::create({{ S("charGroupReference"), PARSE_REF(S("module.AnyCharNoReturn")) }})}
          }),
-         ConstTerm::create({{ S("matchString"), TiWStr(S("\n")) }})
+         AlternateTerm::create({}, {
+           {S("terms"), List::create({}, {
+              ConstTerm::create({{ S("matchString"), TiWStr(S("\n")) }}),
+              ConstTerm::create({{ S("matchString"), TiWStr(S("\r\n")) }})
+           })}
+         }),
        })}
     })}
   }));

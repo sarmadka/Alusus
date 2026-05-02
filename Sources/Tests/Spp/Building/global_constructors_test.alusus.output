@@ -1,68 +1,68 @@
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
 %A = type { i32 }
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
 @"#anonymous0" = private constant [4 x i8] c"%d\0A\00"
 @"!a" = global %A zeroinitializer
 @"#anonymous1" = private constant [8 x i8] c"A~init\0A\00"
 @"#anonymous2" = private constant [13 x i8] c"A~terminate\0A\00"
-@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__constructor__1, i32* null }]
-@llvm.global_dtors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__destructor__2, i32* null }]
+@llvm.global_ctors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__constructor__1, ptr null }]
+@llvm.global_dtors = appending constant [1 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__destructor__2, ptr null }]
 
 define void @main() {
 "#block0":
-  %0 = load i32, i32* getelementptr inbounds (%A, %A* @"!a", i32 0, i32 0)
-  %1 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @"#anonymous0", i32 0, i32 0), i32 %0)
+  %0 = load i32, ptr @"!a"
+  %1 = call i64 (ptr, ...) @printf(ptr @"#anonymous0", i32 %0)
   ret void
 }
 
-declare i64 @printf(i8*, ...)
+declare i64 @printf(ptr, ...)
 
 define void @__constructor__1() {
 "#block1":
-  call void @"A.~init(ref[A])"(%A* @"!a")
+  call void @"A.~init(ref[A])"(ptr @"!a")
   ret void
 }
 
-define void @"A.~init(ref[A])"(%A* %this) {
+define void @"A.~init(ref[A])"(ptr %this) {
 "#block2":
-  %this1 = alloca %A*
-  store %A* %this, %A** %this1
-  %0 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([8 x i8], [8 x i8]* @"#anonymous1", i32 0, i32 0))
-  %1 = load %A*, %A** %this1
-  %2 = getelementptr %A, %A* %1, i32 0, i32 0
-  store i32 6, i32* %2
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = call i64 (ptr, ...) @printf(ptr @"#anonymous1")
+  %1 = load ptr, ptr %this1
+  %2 = getelementptr %A, ptr %1, i32 0, i32 0
+  store i32 6, ptr %2
   ret void
 }
 
 define void @__destructor__2() {
 "#block3":
-  call void @"A.~terminate(ref[A])"(%A* @"!a")
+  call void @"A.~terminate(ref[A])"(ptr @"!a")
   ret void
 }
 
-define void @"A.~terminate(ref[A])"(%A* %this) {
+define void @"A.~terminate(ref[A])"(ptr %this) {
 "#block4":
-  %this1 = alloca %A*
-  store %A* %this, %A** %this1
-  %0 = call i64 (i8*, ...) @printf(i8* getelementptr inbounds ([13 x i8], [13 x i8]* @"#anonymous2", i32 0, i32 0))
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
+  %0 = call i64 (ptr, ...) @printf(ptr @"#anonymous2")
   ret void
 }
 ------------------------------------------------------------
 -------------------- Generated LLVM IR ---------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 
 @"!global1" = global i32 0
 @"!global2" = global i32 0
-@llvm.global_ctors = appending constant [2 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, void ()* @__constructor__4, i32* null }, %LlvmGlobalCtorDtor { i32 1, void ()* @__constructor__3, i32* null }]
+@llvm.global_ctors = appending constant [2 x %LlvmGlobalCtorDtor] [%LlvmGlobalCtorDtor { i32 0, ptr @__constructor__4, ptr null }, %LlvmGlobalCtorDtor { i32 1, ptr @__constructor__3, ptr null }]
 @llvm.global_dtors = appending constant [0 x %LlvmGlobalCtorDtor] zeroinitializer
 
 define void @"testGlobalVarInitOrder()"() {
@@ -78,15 +78,15 @@ define void @"depFunc()"() {
 
 define void @__constructor__3() {
 "#block2":
-  %0 = load i32, i32* @"!global1"
+  %0 = load i32, ptr @"!global1"
   %1 = add nsw i32 %0, 1
-  store i32 %1, i32* @"!global2"
+  store i32 %1, ptr @"!global2"
   ret void
 }
 
 define void @__constructor__4() {
 "#block3":
-  store i32 3, i32* @"!global1"
+  store i32 3, ptr @"!global1"
   ret void
 }
 ------------------------------------------------------------

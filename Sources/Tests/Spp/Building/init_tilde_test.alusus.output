@@ -6,9 +6,9 @@ Build Failed...
 --------------------- Partial LLVM IR ----------------------
 ; ModuleID = 'AlususProgram'
 source_filename = "AlususProgram"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target datalayout = "<sanitized>"
 
-%LlvmGlobalCtorDtor = type { i32, void ()*, i32* }
+%LlvmGlobalCtorDtor = type { i32, ptr, ptr }
 %T = type { i32 }
 
 @llvm.global_ctors = appending constant [0 x %LlvmGlobalCtorDtor] zeroinitializer
@@ -17,46 +17,46 @@ target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16
 define void @"test()"() {
 "#block0":
   %a = alloca %T
-  call void @"T.~init(ref[T])"(%T* %a)
-  call void @"T.~init(ref[T])"(%T* %a)
-  call void @"T.~init(ref[T],Int[32])"(%T* %a, i32 5)
-  call void @"T.~init(ref[T],Int[32],Int[32])"(%T* %a, i32 6, i32 8)
-  %pa = alloca %T*
-  %0 = load %T*, %T** %pa
-  call void @"T.~init(ref[T])"(%T* %0)
-  %1 = load %T*, %T** %pa
-  call void @"T.~init(ref[T],Int[32])"(%T* %1, i32 5)
-  %2 = load %T*, %T** %pa
-  call void @"T.~init(ref[T],Int[32],Int[32])"(%T* %2, i32 6, i32 8)
+  call void @"T.~init(ref[T])"(ptr %a)
+  call void @"T.~init(ref[T])"(ptr %a)
+  call void @"T.~init(ref[T],Int[32])"(ptr %a, i32 5)
+  call void @"T.~init(ref[T],Int[32],Int[32])"(ptr %a, i32 6, i32 8)
+  %pa = alloca ptr
+  %0 = load ptr, ptr %pa
+  call void @"T.~init(ref[T])"(ptr %0)
+  %1 = load ptr, ptr %pa
+  call void @"T.~init(ref[T],Int[32])"(ptr %1, i32 5)
+  %2 = load ptr, ptr %pa
+  call void @"T.~init(ref[T],Int[32],Int[32])"(ptr %2, i32 6, i32 8)
   %i = alloca i32
-  store i32 5, i32* %i
+  store i32 5, ptr %i
   ret void
 }
 
-define void @"T.~init(ref[T])"(%T* %this) {
+define void @"T.~init(ref[T])"(ptr %this) {
 "#block1":
-  %this1 = alloca %T*
-  store %T* %this, %T** %this1
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   ret void
 }
 
-define void @"T.~init(ref[T],Int[32])"(%T* %this, i32 %a) {
+define void @"T.~init(ref[T],Int[32])"(ptr %this, i32 %a) {
 "#block2":
-  %this1 = alloca %T*
-  store %T* %this, %T** %this1
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   %a2 = alloca i32
-  store i32 %a, i32* %a2
+  store i32 %a, ptr %a2
   ret void
 }
 
-define void @"T.~init(ref[T],Int[32],Int[32])"(%T* %this, i32 %a, i32 %b) {
+define void @"T.~init(ref[T],Int[32],Int[32])"(ptr %this, i32 %a, i32 %b) {
 "#block3":
-  %this1 = alloca %T*
-  store %T* %this, %T** %this1
+  %this1 = alloca ptr
+  store ptr %this, ptr %this1
   %a2 = alloca i32
-  store i32 %a, i32* %a2
+  store i32 %a, ptr %a2
   %b3 = alloca i32
-  store i32 %b, i32* %b3
+  store i32 %b, ptr %b3
   ret void
 }
 ------------------------------------------------------------

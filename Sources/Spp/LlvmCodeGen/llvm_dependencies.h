@@ -30,10 +30,10 @@
 #include <llvm/IR/DiagnosticPrinter.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_os_ostream.h>
-#include <llvm/Support/TargetRegistry.h>
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/ThreadPool.h>
 #include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Passes/PassBuilder.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/ExecutionEngine/Orc/CompileUtils.h>
 #include <llvm/ExecutionEngine/Orc/ExecutionUtils.h>
@@ -45,6 +45,18 @@
 #include <llvm/ExecutionEngine/Orc/ObjectTransformLayer.h>
 #include <llvm/ExecutionEngine/Orc/ThreadSafeModule.h>
 #include <llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h>
+#include <llvm/TargetParser/Host.h>
+#include <llvm/ExecutionEngine/Orc/TaskDispatch.h>
+#include <llvm/Passes/StandardInstrumentations.h>
+#include <llvm/ExecutionEngine/Orc/LazyReexports.h>
+#include <llvm/Support/Process.h>
+#include <llvm/ExecutionEngine/Orc/TargetProcess/TargetExecutionUtils.h>
+#include <llvm/ExecutionEngine/Orc/Core.h>
+#include <llvm/ExecutionEngine/Orc/ExecutorProcessControl.h>
+#include <llvm/Passes/OptimizationLevel.h>
+#include <llvm/Analysis/TargetLibraryInfo.h>
+#include <llvm/Analysis/TargetTransformInfo.h>
+#include <llvm/Support/raw_ostream.h>
 
 #define C(x)	u8##x
 #define S(x)	u8##x

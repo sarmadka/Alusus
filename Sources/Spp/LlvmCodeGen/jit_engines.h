@@ -7,6 +7,8 @@
 #ifndef SPP_LLVMCODEGEN_JITENGINES_H
 #define SPP_LLVMCODEGEN_JITENGINES_H
 
+#include <optional>
+
 namespace Spp::LlvmCodeGen
 {
 
@@ -74,7 +76,7 @@ class JitEngine
   /// (e.g. by calling getJITDylibByName) that the given name is not already in
   /// use.
   public: llvm::orc::JITDylib &createJITDylib(std::string name) {
-    return es->createJITDylib(std::move(name));
+    return cantFail(es->createJITDylib(std::move(name)));
   }
 
   /// Convenience method for defining an absolute symbol.
@@ -216,7 +218,8 @@ class JitEngineBuilderState
           llvm::orc::JITTargetMachineBuilder jtmb)>;
 
   public: std::unique_ptr<llvm::orc::ExecutionSession> es;
-  public: llvm::Optional<llvm::orc::JITTargetMachineBuilder> jtmb;
+  // `llvm::Optional` seems to be deprecated in modern LLVM versions. Using `std::optional` instead.
+  public: std::optional<llvm::orc::JITTargetMachineBuilder> jtmb;
   public: ObjectLinkingLayerCreator createObjectLinkingLayer;
   public: CompileFunctionCreator createCompileFunction;
   public: unsigned numCompileThreads = 0;
@@ -227,32 +230,42 @@ class JitEngineBuilderState
 
 
 //==============================================================================
-class GlobalMappingGenerator : public llvm::orc::JITDylib::DefinitionGenerator {
+class GlobalMappingGenerator : public llvm::orc::DefinitionGenerator {
   private: CodeGen::GlobalItemRepo *itemRepo;
 
   public: GlobalMappingGenerator(CodeGen::GlobalItemRepo *itemRepo) : itemRepo(itemRepo) {}
 
   llvm::Error tryToGenerate(
-    llvm::orc::LookupKind K, llvm::orc::JITDylib &JD, llvm::orc::JITDylibLookupFlags JDLookupFlags,
-    const llvm::orc::SymbolLookupSet &Names
+    llvm::orc::LookupState &LS,
+    llvm::orc::LookupKind K, 
+    llvm::orc::JITDylib &JD, 
+    llvm::orc::JITDylibLookupFlags JDLookupFlags, 
+    const llvm::orc::SymbolLookupSet &LookupSet
   ) {
-    llvm::orc::SymbolMap NewDefs;
+      llvm::orc::SymbolMap NewDefs;
 
-    for (const auto &KV : Names) {
-      const auto &Name = KV.first;
-      #if __APPLE__
-        // Skip the leading _ that gets auto added in macOS.
-        auto index = this->itemRepo->findItem((*Name).data() + 1);
-      #else
-        auto index = this->itemRepo->findItem((*Name).data());
-      #endif
-      if (index != -1) NewDefs[Name] = llvm::JITEvaluatedSymbol(
-        (llvm::JITTargetAddress)this->itemRepo->getItemPtr(index), llvm::JITSymbolFlags::None
-      );
-    }
+      for (const auto &KV : LookupSet) { 
+          const auto &Name = KV.first;
+          #if __APPLE__
+              auto index = this->itemRepo->findItem((*Name).data() + 1);
+          #else
+              auto index = this->itemRepo->findItem((*Name).data());
+          #endif
 
-    cantFail(JD.define(absoluteSymbols(std::move(NewDefs))));
-    return llvm::Error::success();
+          if (index != -1) {
+              NewDefs[Name] = { 
+                  llvm::orc::ExecutorAddr::fromPtr(this->itemRepo->getItemPtr(index)), 
+                  llvm::JITSymbolFlags::None 
+              };
+          }
+      }
+
+      if (!NewDefs.empty()) {
+          if (auto Err = JD.define(absoluteSymbols(std::move(NewDefs))))
+              return Err;
+      }
+
+      return llvm::Error::success();
   }
 };
 
@@ -272,7 +285,8 @@ class JitEngineBuilderSetters
 
   /// Return a reference to the JITTargetMachineBuilder.
   ///
-  public: llvm::Optional<llvm::orc::JITTargetMachineBuilder>& getJITTargetMachineBuilder() {
+  // `llvm::Optional` seems to be deprecated in modern LLVM versions. Using `std::optional` instead.
+  public: std::optional<llvm::orc::JITTargetMachineBuilder>& getJITTargetMachineBuilder() {
     return impl().jtmb;
   }
 
