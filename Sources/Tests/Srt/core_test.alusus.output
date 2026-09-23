@@ -1,48 +1,48 @@
-Core.Data.Ast.List
+Core.Ast.List
  members:
  -prodId: TiWord 182
- -sourceLocation: Core.Data.SourceLocationRecord
+ -sourceLocation: Core.Ast.SourceLocationRecord
  list elements:
  -Identifier a
- -Core.Data.Ast.LinkOperator
+ -Core.Ast.LinkOperator
    members:
    -type: TiStr ":"
    -prodId: TiWord 183
-   -sourceLocation: Core.Data.SourceLocationRecord
+   -sourceLocation: Core.Ast.SourceLocationRecord
    map elements:
    -first: Identifier b
-   -second: Core.Data.Ast.Bracket
+   -second: Core.Ast.Bracket
      members:
      -type: TiInt 0
      -prodId: TiWord 314
-     -sourceLocation: Core.Data.SourceLocationRecord
+     -sourceLocation: Core.Ast.SourceLocationRecord
      map elements:
-     -operand: Core.Data.Ast.List
+     -operand: Core.Ast.List
        members:
        -prodId: TiWord 182
-       -sourceLocation: Core.Data.SourceLocationRecord
+       -sourceLocation: Core.Ast.SourceLocationRecord
        list elements:
        -IntegerLiteral 5
        -IntegerLiteral 6
  -Identifier c
- -Core.Data.Ast.Definition
+ -Core.Ast.Definition
    members:
    -name: TiStr "fn"
    -toMerge: TiBool false
    -prodId: TiWord 248
-   -sourceLocation: Core.Data.SourceLocationRecord
+   -sourceLocation: Core.Ast.SourceLocationRecord
    map elements:
    -target: Spp.Ast.Function
      members:
      -name: TiStr ""
      -inlined: TiBool false
      -prodId: TiWord 248
-     -sourceLocation: Core.Data.SourceLocationRecord
+     -sourceLocation: Core.Ast.SourceLocationRecord
      map elements:
      -type: Spp.Ast.FunctionType
        members:
        -prodId: TiWord 248
-       -sourceLocation: Core.Data.SourceLocationRecord
+       -sourceLocation: Core.Ast.SourceLocationRecord
        -member: TiBool false
        map elements:
        -argTypes: NULL

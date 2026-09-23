@@ -2,7 +2,7 @@
  * @file Spp/BuildManager.cpp
  * Contains the implementation of class Spp::BuildManager.
  *
- * @copyright Copyright (C) 2025 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -214,7 +214,7 @@ Bool BuildManager::_finalizeExecutionEntry(TiObject *self, BuildSession *buildSe
 }
 
 
-Bool BuildManager::_addElementToBuild(TiObject *self, TiObject *element, BuildSession *buildSession)
+Bool BuildManager::_addElementToBuild(TiObject *self, Core::Ast::Node *element, BuildSession *buildSession)
 {
   PREPARE_SELF(buildMgr, BuildManager);
 
@@ -236,7 +236,7 @@ Bool BuildManager::_addElementToBuild(TiObject *self, TiObject *element, BuildSe
 }
 
 
-Bool BuildManager::_addElementToExecutionEntry(TiObject *self, TiObject *element, BuildSession *buildSession)
+Bool BuildManager::_addElementToExecutionEntry(TiObject *self, Core::Ast::Node *element, BuildSession *buildSession)
 {
   PREPARE_SELF(buildMgr, BuildManager);
   auto generation = ti_cast<CodeGen::Generation>(buildMgr->generator);
@@ -306,7 +306,7 @@ Bool BuildManager::_execute(TiObject *self, BuildSession *buildSession)
 }
 
 
-void BuildManager::_dumpLlvmIrForElement(TiObject *self, TiObject *element)
+void BuildManager::_dumpLlvmIrForElement(TiObject *self, Core::Ast::Node *element)
 {
   VALIDATE_NOT_NULL(element);
   PREPARE_SELF(buildMgr, BuildManager);
@@ -344,7 +344,7 @@ void BuildManager::_dumpLlvmIrForElement(TiObject *self, TiObject *element)
 
 
 Bool BuildManager::_buildObjectFileForElement(
-  TiObject *self, TiObject *element, Char const *objectFilename, Char const *targetTriple
+  TiObject *self, Core::Ast::Node *element, Char const *objectFilename, Char const *targetTriple
 ) {
   VALIDATE_NOT_NULL(element);
   PREPARE_SELF(buildMgr, BuildManager);
@@ -389,11 +389,11 @@ void BuildManager::_resetBuild(TiObject *self, BuildSession *buildSession)
 void BuildManager::_resetBuildData(TiObject *self, TiObject *obj, CodeGen::ExtraDataAccessor *eda)
 {
   if (obj == 0) return;
-  if (obj->isDerivedFrom<Core::Data::Grammar::Module>()) return;
+  if (obj->isDerivedFrom<Core::Grammar::Module>()) return;
 
   PREPARE_SELF(buildMgr, BuildManager);
 
-  auto metahaving = ti_cast<Core::Data::Ast::MetaHaving>(obj);
+  auto metahaving = ti_cast<Core::Ast::MetaHaving>(obj);
   if (metahaving != 0) {
     eda->removeCodeGenData(metahaving);
     eda->removeAutoCtor(metahaving);
@@ -404,9 +404,9 @@ void BuildManager::_resetBuildData(TiObject *self, TiObject *obj, CodeGen::Extra
     eda->resetInitStatementsGenIndex(metahaving);
   }
 
-  if (obj->isDerivedFrom<Core::Data::Ast::Passage>()) return;
+  if (obj->isDerivedFrom<Core::Ast::Passage>()) return;
 
-  auto container = ti_cast<Core::Basic::Containing<TiObject>>(obj);
+  auto container = ti_cast<Core::Basic::Containing<Core::Ast::Node>>(obj);
   if (container != 0) {
     for (Int i = 0; i < container->getElementCount(); ++i) {
       buildMgr->resetBuildData(container->getElement(i), eda);
@@ -429,8 +429,9 @@ void BuildManager::_resetBuildData(TiObject *self, TiObject *obj, CodeGen::Extra
 }
 
 
-Bool BuildManager::_computeResultType(TiObject *self, TiObject *astNode, TiObject *&result, Bool &resultIsValue)
-{
+Bool BuildManager::_computeResultType(
+  TiObject *self, Core::Ast::Node *astNode, Core::Ast::Node *&result, Bool &resultIsValue
+) {
   PREPARE_SELF(buildMgr, BuildManager);
 
   BuildSession buildSession(buildMgr->preprocessBuildSession->getBuildId(), buildMgr->preprocessBuildSession.get());

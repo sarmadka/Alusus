@@ -2,7 +2,7 @@
  * @file Spp/RootManagerExtension.h
  * Contains the header of class Spp::RootManagerExtension.
  *
- * @copyright Copyright (C) 2021 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -30,6 +30,7 @@ class RootManagerExtension : public ObjTiInterface
   public: struct Overrides
   {
     TiFunctionBase *importFileRef;
+    TiFunctionBase *prefixAlususTemplateClassFuncExpNamesRef;
   };
 
 
@@ -46,6 +47,7 @@ class RootManagerExtension : public ObjTiInterface
   {
     Basic::initBindingCaches(this->owner, {
       &this->importFile,
+      &this->prefixAlususTemplateClassFuncExpNames,
       &this->buildManager,
       &this->astProcessor,
       &this->rtGrammarMgr,
@@ -103,6 +105,13 @@ class RootManagerExtension : public ObjTiInterface
 
   public: METHOD_BINDING_CACHE(importFile, void, (Char const*));
   public: static void _importFile(TiObject *self, Char const *filename);
+
+  public: METHOD_BINDING_CACHE(prefixAlususTemplateClassFuncExpNames,
+    void, (Core::Ast::Node* /* classAst */, Core::Ast::Node* /* argAst */)
+  );
+  public: static void _prefixAlususTemplateClassFuncExpNames(
+    TiObject *self, Core::Ast::Node *classAst, Core::Ast::Node *argAst
+  );
 
   /// @}
 

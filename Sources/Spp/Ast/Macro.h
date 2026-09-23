@@ -2,7 +2,7 @@
  * @file Spp/Ast/Macro.h
  * Contains the header of class Spp::Ast::Macro.
  *
- * @copyright Copyright (C) 2022 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -16,19 +16,19 @@
 namespace Spp::Ast
 {
 
-class Macro : public Core::Data::Node,
-              public Binding, public MapContaining<TiObject>,
-              public Core::Data::Ast::MetaHaving, public Core::Data::Printable
+class Macro : public Core::Ast::Node,
+              public Binding, public MapContaining<Core::Ast::Node>,
+              public Core::Ast::MetaHaving, public Core::Ast::Printable
 {
   //============================================================================
   // Type Info
 
-  TYPE_INFO(Macro, Core::Data::Node, "Spp.Ast", "Spp", "alusus.org", (
+  TYPE_INFO(Macro, Core::Ast::Node, "Spp.Ast", "Spp", "alusus.org", (
     INHERITANCE_INTERFACES(
       Binding,
-      MapContaining<TiObject>,
-      Core::Data::Ast::MetaHaving,
-      Core::Data::Printable
+      MapContaining<Core::Ast::Node>,
+      Core::Ast::MetaHaving,
+      Core::Ast::Printable
     )
   ));
   OBJECT_FACTORY(Macro);
@@ -37,8 +37,8 @@ class Macro : public Core::Data::Node,
   //============================================================================
   // Member Variables
 
-  private: SharedPtr<Core::Data::Ast::Map> argTypes;
-  private: TioSharedPtr body;
+  private: SharedPtr<Core::Ast::Map> argTypes;
+  private: SharedPtr<Core::Ast::Node> body;
   private: TiBool member;
 
 
@@ -50,12 +50,12 @@ class Macro : public Core::Data::Node,
   IMPLEMENT_BINDING(Binding,
     (member, TiBool, VALUE, setMember(value), &member),
     (prodId, TiWord, VALUE, setProdId(value), &prodId),
-    (sourceLocation, Core::Data::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get())
+    (sourceLocation, Core::Ast::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get())
   );
 
-  IMPLEMENT_MAP_CONTAINING(MapContaining<TiObject>,
-    (argTypes, Core::Data::Ast::Map, SHARED_REF, setArgTypes(value), argTypes.get()),
-    (body, TiObject, SHARED_REF, setBody(value), body.get())
+  IMPLEMENT_MAP_CONTAINING(MapContaining<Core::Ast::Node>,
+    (argTypes, Core::Ast::Map, SHARED_REF, setArgTypes(value), argTypes.get()),
+    (body, Core::Ast::Node, SHARED_REF, setBody(value), body.get())
   );
 
   IMPLEMENT_AST_MAP_PRINTABLE(Macro);
@@ -80,16 +80,16 @@ class Macro : public Core::Data::Node,
   //============================================================================
   // Member Functions
 
-  public: void setArgTypes(SharedPtr<Core::Data::Ast::Map> const &args)
+  public: void setArgTypes(SharedPtr<Core::Ast::Map> const &args)
   {
     UPDATE_OWNED_SHAREDPTR(this->argTypes, args);
   }
-  private: void setArgTypes(Core::Data::Ast::Map *args)
+  private: void setArgTypes(Core::Ast::Map *args)
   {
     this->setArgTypes(getSharedPtr(args));
   }
 
-  public: SharedPtr<Core::Data::Ast::Map> const& getArgTypes() const
+  public: SharedPtr<Core::Ast::Map> const& getArgTypes() const
   {
     return this->argTypes;
   }
@@ -99,21 +99,21 @@ class Macro : public Core::Data::Node,
     return this->argTypes == 0 ? 0 : this->argTypes->getCount();
   }
 
-  public: void setBody(TioSharedPtr const &b)
+  public: void setBody(SharedPtr<Core::Ast::Node> const &b)
   {
     UPDATE_OWNED_SHAREDPTR(this->body, b);
   }
-  private: void setBody(TiObject *b)
+  private: void setBody(Core::Ast::Node *b)
   {
     this->setBody(getSharedPtr(b));
   }
 
-  public: TioSharedPtr const& getBody() const
+  public: SharedPtr<Core::Ast::Node> const& getBody() const
   {
     return this->body;
   }
 
-  public: Bool matchCall(Containing<TiObject> *args, Helper *helper)
+  public: Bool matchCall(Containing<Core::Ast::Node> *args, Helper *helper)
   {
     VALIDATE_NOT_NULL(args);
     // TODO: Match arg types as well.

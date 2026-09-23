@@ -9,11 +9,11 @@
 #### أدرج_تو_لعنصر (dumpLlvmIrForElement)
 
 ```
-  عملية هذا.أدرج_تو_لعنصر (عنصر: سند[كـائن_بهوية])؛
+  عملية هذا.أدرج_تو_لعنصر (عنصر: سند[الـقلب.شـبم.عـقدة])؛
 ```
 
 ```
-  handler this.dumpLlvmIrForElement (element: ref[TiObject]);
+  handler this.dumpLlvmIrForElement (element: ref[Core.Ast.Node]);
 ```
 
 دالة `أدرج_تو_لعنصر` تقوم بطبع الترميز الوسطي لعنصر معين من الشفرة المصدرية. الترميز الوسطي المطبوع هو ترميز LLVM IR. تستقبل الدالة معطى واحد وهو مؤشر على شبكة البنية المجردة لذلك العنصر (Abstract Syntax Tree). يمكنك الحصول على هذا المؤشر باستخدام الأمر `~شبم` كما في المثال التالي:
@@ -30,7 +30,7 @@
 
 ```
   عملية هذا.أنشء_ملفا_رقميا_لعنصر (
-    عنصر: سند[كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     اسم_الملف: مؤشر[مصفوفة[محرف]]،
     وصف_المعمارية: مؤشر[مصفوفة[محرف]]
   ): ثنائي
@@ -38,7 +38,7 @@
 
 ```
   handler this.buildObjectFileForElement (
-    element: ref[TiObject],
+    element: ref[Core.Ast.Node],
     filename: ptr[array[Char]],
     targetTriple: ptr[array[Char]]
   ): Bool;
@@ -62,13 +62,13 @@
 
 ```
   دالة ارفع_إشعار_بناء (
-    رمز: مؤشر[مصفوفة[مـحرف]]، حدة: صـحيح، عنصر_شبم: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    رمز: مؤشر[مصفوفة[مـحرف]]، حدة: صـحيح، عنصر_شبم: سند[الـقلب.شـبم.عـقدة]
   )؛
 ```
 
 ```
   func raiseBuildNotice (
-    code: ptr[array[Char]], severity: Int, astNode: ref[TiObject]
+    code: ptr[array[Char]], severity: Int, astNode: ref[Core.Ast.Node]
   );
 ```
 
@@ -102,22 +102,22 @@
 #### أضف_أمرا_مخصصا (addCustomCommand)
 
 ```
-عرف كـائن_بهوية: لقب الـقلب.أسـاسيات.كـائن_بهوية؛
+عرف عـقدة_شبم: لقب الـقلب.شـبم.عـقدة؛
 
 عملية هذا.أضف_أمرا_مخصصا (
     معرف: مؤشر[مصفوفة[مـحرف]]،
-    شجرة_القاعدة: سند[كـائن_بهوية]
-    معالج: مؤشر[دالة (سـندنا[كـائن_بهوية]): سـندنا[كـائن_بهوية]]
+    شجرة_القاعدة: سند[عـقدة_شبم]
+    معالج: مؤشر[دالة (سـندنا[عـقدة_شبم]): سـندنا[عـقدة_شبم]]
 )؛
 ```
 
 ```
-def TiObject: alias Core.Basic.TiObject;
+def AstNode: alias Core.Ast.Node;
 
 handler this.addCustomCommand (
     identifier: ptr[array[Char]],
-    grammarAst: ref[TiObject],
-    handler: ptr[func (SrdRef[TiObject]): SrdRef[TiObject]]
+    grammarAst: ref[AstNode],
+    handler: ptr[func (SrdRef[AstNode]): SrdRef[AstNode]]
 );
 ```
 
@@ -151,7 +151,7 @@ ast {
         معطيات: "module".Expression*(0,2) +
                 "module".Set*(1,1)؛
     }،
-    دالة (معطيات: سـندنا_بهوية): سـندنا_بهوية { ... }
+    دالة (معطيات: سـندنا[الـقلب.شبم.عـقدة): سـندنا[الـقلب.شـبم.عـقدة] { ... }
 )؛
 ```
 
@@ -162,7 +162,7 @@ Spp.grammarMgr.addCustomCommand(
         keywords: "test_cmd";
         args: "module".Expression(0, 2) + "module".Set*(1,1);
     },
-    func (args: SrdRef[TiObject]): SrdRef[TiObject] { ... }
+    func (args: SrdRef[Core.Ast.Node]): SrdRef[Core.Ast.Node] { ... }
 );
 ```
 
@@ -171,22 +171,22 @@ Spp.grammarMgr.addCustomCommand(
 #### أضف_قاعدة_مخصصة (addCustomGrammar)
 
 ```
-عرف كـائن_بهوية: لقب الـقلب.أسـاسيات.كـائن_بهوية؛
+عرف عـقدة_شبم: لقب الـقلب.شـبم.عـقدة؛
 
 عملية هذا.أضف_قاعدة_مخصصة (
     معرف: مؤشر[مصفوفة[مـحرف]]،
     معرف_الأصل: مؤشر[مصفوفة[مـحرف]]،
-    شجرة_القاعدة: سند[كـائن_بهوية]
+    شجرة_القاعدة: سند[عـقدة_شبم]
 )؛
 ```
 
 ```
-def TiObject: alias Core.Basic.TiObject;
+def AstNode: alias Core.Ast.Node;
 
 handler this.addCustomGrammar (
     identifier: ptr[array[Char]],
     baseIdentifier: ptr[array[Char]],
-    grammarAst: ref[TiObject]
+    grammarAst: ref[AstNode]
 );
 ```
 
@@ -230,34 +230,34 @@ Spp.grammarMgr.addCustomGrammar(
 
 ```
 عملية هذا.جد_عناصر (
-    معيار_البحث: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    موقع_البحث: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
+    معيار_البحث: سند[الـقلب.شـبم.عـقدة]،
+    موقع_البحث: سند[الـقلب.شـبم.عـقدة]،
     خيارات: طـبيعي
-): مـصفوفة[سند[الـقلب.أسـاسيات.كـائن_بهوية]]؛
+): مـصفوفة[سند[الـقلب.شـبم.عـقدة]]؛
 
 عملية هذا.جد_عناصر (
-    معيار_البحث: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    موقع_البحث: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
+    معيار_البحث: سند[الـقلب.شـبم.عـقدة]،
+    موقع_البحث: سند[الـقلب.شـبم.عـقدة]،
     خيارات: طـبيعي،
     معرف_مبدل: مـؤشر_محارف،
     ترجمات_معرف: سند[تـطبيق[نـص، نـص]]
-): مـصفوفة[سند[الـقلب.أسـاسيات.كـائن_بهوية]]؛
+): مـصفوفة[سند[الـقلب.شـبم.عـقدة]]؛
 ```
 
 ```
 handler this.findElements (
-    comparison: ref[Core.Basic.TiObject],
-    target: ref[Core.Basic.TiObject],
+    comparison: ref[Core.Ast.Node],
+    target: ref[Core.Ast.Node],
     flags: Word
-): Array[ref[Core.Basic.TiObject]];
+): Array[ref[Core.Ast.Node]];
 
 handler this.findElements(
-    comparison: ref[TiObject],
-    target: ref[TiObject],
+    comparison: ref[Core.Ast.Node],
+    target: ref[Core.Ast.Node],
     flags: Word,
     modifierKwd: CharsPtr,
     kwdTranslations: ref[Map[String, String]]
-): Array[ref[TiObject]];
+): Array[ref[Core.Ast.Node]];
 ```
 
 تبحث ضمن الشفرة المصدرية عن عناصر تطابق معيار البحث المعطى. المعطيان الأول والثاني سندان على شجرتي بنية مجردة،
@@ -332,13 +332,13 @@ handler this.findElements(
 
 ```
   عملية هذا.هات_اسم_تعريف (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    عنصر: سند[الـقلب.شـبم.عـقدة]
   ): نـص؛
 ```
 
 ```
   handler this.getDefinitionName (
-      element: ref[Core.Basic.TiObject]
+      element: ref[Core.Ast.Node]
   ): String;
 ```
 
@@ -348,14 +348,14 @@ handler this.findElements(
 
 ```
   عملية هذا.هات_المبدلات (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]
-  ): سند[الـقلب.أسـاسيات.احـتواء]؛
+    عنصر: سند[الـقلب.شـبم.عـقدة]
+  ): سند[الـقلب.أسـاسيات.احـتواء[الـقلب.شـبم.عـقدة]]؛
 ```
 
 ```
   handler this.getModifiers (
-      element: ref[Core.Basic.TiObject]
-  ): ref[Core.Basic.Containing];
+      element: ref[Core.Ast.Node]
+  ): ref[Core.Basic.Containing[Core.Ast.Node]];
 ```
 
 تجلب قائمة المبدلات المطبقة على العنصر المُعطى.
@@ -364,16 +364,16 @@ handler this.findElements(
 
 ```
   عملية هذا.جد_مبدلا (
-    مبدلات: سند[الـقلب.أسـاسيات.احـتواء]،
+    مبدلات: سند[الـقلب.أسـاسيات.احـتواء[الـقلب.شـبم.عـقدة]]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]
-  ): سند[الـقلب.أسـاسيات.كـائن_بهوية]
+  ): سند[الـقلب.شـبم.عـقدة]
 ```
 
 ```
   handler this.findModifier(
-      modifiers: ref[Core.Basic.Containing],
+      modifiers: ref[Core.Basic.Containing[Core.Ast.Node]],
       kwd: ptr[array[Char]]
-  ): ref[Core.Basic.TiObject];
+  ): ref[Core.Ast.Node];
 ```
 
 إيجاد مبدل ضمن قائمة مبدلات. يتم البحث باستخدام الكلمة المفتاحية للمبدل. مثلا، للبحث عن مبدل `@تصدير[...]`
@@ -383,28 +383,28 @@ handler this.findElements(
 
 ```
   عملية هذا.جد_مبدلا_لعنصر (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]
-  ): سند[الـقلب.أسـاسيات.كـائن_بهوية]
+  ): سند[الـقلب.شـبم.عـقدة]
 
   عملية هذا.جد_مبدلا_لعنصر (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]،
     ترجمات_الكلمة_المفتاحية: سند[تـطبيق[نـص، نـص]]
-  ): سند[الـقلب.أسـاسيات.كـائن_بهوية]
+  ): سند[الـقلب.شـبم.عـقدة]
 ```
 
 ```
   handler this.findModifierForElement(
-    element: ref[Core.Basic.TiObject],
+    element: ref[Core.Ast.Node],
     kwd: ptr[array[Char]]
-  ): ref[Core.Basic.TiObject];
+  ): ref[Core.Ast.Node];
 
   handler this.findModifierForElement(
-    element: ref[Core.Basic.TiObject],
+    element: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
-  ): ref[Core.Basic.TiObject];
+  ): ref[Core.Ast.Node];
 ```
 
 إيجاد المبدل بالكلمة المعيارية المعطاة على العنصر المعطى. النسخة الثانية من هذه الدالة تستلم أيضًا قائمة ترجمات
@@ -414,13 +414,13 @@ handler this.findElements(
 
 ```
   عملية هذا.هات_كلمة_المبدل_المفتاحية (
-    مبدل: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    مبدل: سند[الـقلب.شـبم.عـقدة]
   ): نـص
 ```
 
 ```
   handler this.getModifierKeyword(
-    modifier: ref[Core.Basic.TiObject]
+    modifier: ref[Core.Ast.Node]
   ): Srl.String;
 ```
 
@@ -430,15 +430,15 @@ handler this.findElements(
 
 ```
 عملية هذا.هات_معطيات_مبدل (
-    مبدل: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    الناتج: سند[مـصفوفة[سند[الـقلب.أسـاسيات.كـائن_بهوية]]]
+    مبدل: سند[الـقلب.شـبم.عـقدة]،
+    الناتج: سند[مـصفوفة[سند[الـقلب.شـبم.عـقدة]]]
 ): ثـنائي
 ```
 
 ```
 handler this.getModifierParams(
-    modifier: ref[Core.Basic.TiObject],
-    result: ref[Array[ref[Core.Basic.TiObject]]]
+    modifier: ref[Core.Ast.Node],
+    result: ref[Array[ref[Core.Ast.Node]]]
 ) => Bool;
 ```
 
@@ -449,14 +449,14 @@ handler this.getModifierParams(
 
 ```
 عملية هذا.هات_المعطيات_النصية_لمبدل (
-    مبدل: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
+    مبدل: سند[الـقلب.شـبم.عـقدة]،
     الناتج: سند[مـصفوفة[نـص]]
 ): ثـنائي
 ```
 
 ```
 handler this.getModifierStringParams(
-    modifier: ref[Core.Basic.TiObject],
+    modifier: ref[Core.Ast.Node],
     result: ref[Array[String]]
 ) => Bool;
 ```
@@ -468,23 +468,23 @@ handler this.getModifierStringParams(
 #### هات_متغيرات_صنف (getClassVars)
 
 ```
-عملية هذا.هات_متغيرات_صنف (عنصر: سند[كـائن_بهوية]): مـصفوفة[سند[كـائن_بهوية]]؛
+عملية هذا.هات_متغيرات_صنف (عنصر: سند[الـقلب.شـبم.عـقدة]): مـصفوفة[سند[الـقلب.شـبم.عـقدة]]؛
 
 عملية هذا.هات_متغيرات_صنف (
-    عنصر: سند[كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]،
     ترجمات_الكلمة_المفتاحية: سند[تـطبيق[نـص، نـص]]
-): مـصفوفة[سند[كـائن_بهوية]]؛
+): مـصفوفة[سند[الـقلب.شـبم.عـقدة]]؛
 ```
 
 ```
-handler this.getClassVars (parent: ref[TiObject]): Array[ref[TiObject]];
+handler this.getClassVars (parent: ref[Core.Ast.Node]): Array[ref[Core.Ast.Node]];
 
 handler this.getClassVars (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
-): Array[ref[TiObject]];
+): Array[ref[Core.Ast.Node]];
 ```
 
 تجلب قائمة المتغيرات التابعة لصنف محدد. النسخة الثانية من هذه الدالة تحضر المتغيرات
@@ -493,20 +493,20 @@ handler this.getClassVars (
 #### هات_أسماء_متغيرات_صنف (getClassVarNames)
 
 ```
-عملية هذا.هات_أسماء_متغيرات_صنف (عنصر: سند[كـائن_بهوية]): مـصفوفة[نـص]؛
+عملية هذا.هات_أسماء_متغيرات_صنف (عنصر: سند[الـقلب.شـبم.عـقدة]): مـصفوفة[نـص]؛
 
 عملية هذا.هات_أسماء_متغيرات_صنف (
-    عنصر: سند[كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]،
     ترجمات_الكلمة_المفتاحية: سند[تـطبيق[نـص، نـص]]
 ): مـصفوفة[نـص]؛
 ```
 
 ```
-handler this.getClassVarNames (parent: ref[TiObject]): Array[String];
+handler this.getClassVarNames (parent: ref[Core.Ast.Node]): Array[String];
 
 handler this.getClassVarNames (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
 ): Array[String];
@@ -518,23 +518,23 @@ handler this.getClassVarNames (
 #### هات_دالات_صنف (getClassFuncs)
 
 ```
-عملية هذا.هات_دالات_صنف (عنصر: سند[كـائن_بهوية]): مـصفوفة[سند[كـائن_بهوية]]؛
+عملية هذا.هات_دالات_صنف (عنصر: سند[الـقلب.شـبم.عـقدة]): مـصفوفة[سند[الـقلب.شـبم.عـقدة]]؛
 
 عملية هذا.هات_دالات_صنف (
-    عنصر: سند[كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]،
     ترجمات_الكلمة_المفتاحية: سند[تـطبيق[نـص، نـص]]
-): مـصفوفة[سند[كـائن_بهوية]]؛
+): مـصفوفة[سند[الـقلب.شـبم.عـقدة]]؛
 ```
 
 ```
-handler this.getClassFuncs (parent: ref[TiObject]): Array[ref[TiObject]];
+handler this.getClassFuncs (parent: ref[Core.Ast.Node]): Array[ref[Core.Ast.Node]];
 
 handler this.getClassFuncs (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
-): Array[ref[TiObject]];
+): Array[ref[Core.Ast.Node]];
 ```
 
 تجلب قائمة الدالات التابعة لصنف محدد. النسخة الثانية من هذه الدالة تحضر الدالات
@@ -543,20 +543,20 @@ handler this.getClassFuncs (
 #### هات_أسماء_دالات_صنف (getClassFuncNames)
 
 ```
-عملية هذا.هات_أسماء_دالات_صنف (عنصر: سند[كـائن_بهوية]): مـصفوفة[نـص]؛
+عملية هذا.هات_أسماء_دالات_صنف (عنصر: سند[الـقلب.شـبم.عـقدة]): مـصفوفة[نـص]؛
 
 عملية هذا.هات_أسماء_دالات_صنف (
-    عنصر: سند[كـائن_بهوية]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
     كلمة_مفتاحية: مؤشر[مصفوفة[مـحرف]]،
     ترجمات_الكلمة_المفتاحية: سند[تـطبيق[نـص، نـص]]
 ): مـصفوفة[نـص]؛
 ```
 
 ```
-handler this.getClassFuncNames (parent: ref[TiObject]): Array[String];
+handler this.getClassFuncNames (parent: ref[Core.Ast.Node]): Array[String];
 
 handler this.getClassFuncNames (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
 ): Array[String];
@@ -568,11 +568,11 @@ handler this.getClassFuncNames (
 #### هات_أصناف_معطيات_دالة (getFuncArgTypes)
 
 ```
-عملية هذا.هات_أصناف_معطيات_دالة (عنصر: سند[كـائن_بهوية]): سند[كـائن_بهوية]؛
+عملية هذا.هات_أصناف_معطيات_دالة (عنصر: سند[الـقلب.شـبم.عـقدة]): سند[الـقلب.شـبم.عـقدة]؛
 ```
 
 ```
-handler this.getFuncArgTypes (element: ref[TiObject]): ref[TiObject]
+handler this.getFuncArgTypes (element: ref[Core.Ast.Node]): ref[Core.Ast.Node]
 ```
 
 تجلب قائمة تعريفات المعطيات للدالة المعطاة.
@@ -580,11 +580,11 @@ handler this.getFuncArgTypes (element: ref[TiObject]): ref[TiObject]
 #### هات_صنف_معطى_دالة (getFuncArgType)
 
 ```
-عملية هذا.هات_صنف_معطى_دالة (عنصر: سند[كـائن_بهوية]، تسلسل: صـحيح): سند[كـائن_بهوية]؛
+عملية هذا.هات_صنف_معطى_دالة (عنصر: سند[الـقلب.شـبم.عـقدة]، تسلسل: صـحيح): سند[الـقلب.شـبم.عـقدة]؛
 ```
 
 ```
-handler this.getFuncArgType (element: ref[TiObject], index: Int): ref[TiObject]
+handler this.getFuncArgType (element: ref[Core.Ast.Node], index: Int): ref[Core.Ast.Node]
 ```
 
 تجلب تعريف معطى الدالة المعطاة ذي التسلسل المحدد.
@@ -593,13 +593,13 @@ handler this.getFuncArgType (element: ref[TiObject], index: Int): ref[TiObject]
 
 ```
 عملية هذا.هات_المسار_الكامل_لشفرة_عنصر (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    عنصر: سند[الـقلب.شـبم.عـقدة]
 ): نـص
 ```
 
 ```
 handler this.getSourceFullPathForElement(
-    element: ref[Core.Basic.TiObject]
+    element: ref[Core.Ast.Node]
 ) => String;
 ```
 
@@ -609,13 +609,13 @@ handler this.getSourceFullPathForElement(
 
 ```
 عملية هذا.هات_مجلد_شفرة_عنصر (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    عنصر: سند[الـقلب.شـبم.عـقدة]
 ): نـص
 ```
 
 ```
 handler this.getSourceDirectoryForElement(
-    element: ref[Core.Basic.TiObject]
+    element: ref[Core.Ast.Node]
 ) => String;
 ```
 
@@ -625,23 +625,23 @@ handler this.getSourceDirectoryForElement(
 
 ```
 عملية هذا.احشر_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    استعاضات: سند[تـطبيق[نـص، سند[الـقلب.أسـاسيات.كـائن_بهوية]]]
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    استعاضات: سند[تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]]
 ): ثـنائي
 عملية هذا.احشر_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    استعاضات: سند[تـطبيق[نـص، سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]]]
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    استعاضات: سند[تـطبيق[نـص، سـندنا[الـقلب.شـبم.عـقدة]]]
 ): ثـنائي
 ```
 
 ```
 handler this.insertAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, ref[Core.Basic.TiObject]]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, ref[Core.Ast.Node]]]
 ) => Bool;
 handler this.insertAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, SrdRef[Core.Basic.TiObject]]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, SrdRef[Core.Ast.Node]]]
 ) => Bool;
 ```
 
@@ -653,10 +653,10 @@ handler this.insertAst(
 ```
   عرف ع: صـحيح؛
   لكل ع = 0، ع < 5، ++ع {
-      عرف عداد: نـص_بهوية = نـص.املأ("%i"، ع)؛
+      عرف عداد: الـقلب.شـبم.نـص_حرفي(نـص.املأ("%i"، ع))؛
       نـبم.مدير_شبم.أنشئ_شبم(
           شبم { عرف ن__عداد__: صـحيح }،
-          تـطبيق[نـص، سند[كـائن_بهوية]]().حدد(نـص("عداد")، عداد)
+          تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]().حدد(نـص("عداد")، عداد)
       )؛
   }
 ```
@@ -664,10 +664,10 @@ handler this.insertAst(
 ```
   def i: Int;
   for i = 0, i < 10, ++i {
-      def counter: TiStr = String.format("%i", i);
+      def counter: Core.Ast.StringLiteral(String.format("%i", i));
       Spp.astMgr.insertAst(
           ast { def n__counter__: Int },
-          Map[String, ref[TiObject]]().set(String("counter"), counter)
+          Map[String, ref[Core.Ast.Node]]().set(String("counter"), counter)
       );
   }
 ```
@@ -676,36 +676,36 @@ handler this.insertAst(
 
 ```
 عملية هذا.أنشئ_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    استعاضات: سند[تـطبيق[نـص، سند[الـقلب.أسـاسيات.كـائن_بهوية]]]،
-    النتيجة: سند[سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]]
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    استعاضات: سند[تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]]،
+    النتيجة: سند[سـندنا[الـقلب.شـبم.عـقدة]]
 ): ثـنائي
 عملية هذا.أنشئ_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    استعاضات: سند[تـطبيق[نـص، سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]]]،
-    النتيجة: سند[سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]]
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    استعاضات: سند[تـطبيق[نـص، سـندنا[الـقلب.شـبم.عـقدة]]]،
+    النتيجة: سند[سـندنا[الـقلب.شـبم.عـقدة]]
 ): ثـنائي
 عملية هذا.أنشئ_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    استعاضات: سند[تـطبيق[نـص، سند[الـقلب.أسـاسيات.كـائن_بهوية]]]
-): سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]؛
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    استعاضات: سند[تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]]
+): سـندنا[الـقلب.شـبم.عـقدة]؛
 ```
 
 ```
 handler this.buildAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, ref[Core.Basic.TiObject]]],
-    result: ref[SrdRef[Core.Basic.TiObject]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, ref[Core.Ast.Node]]],
+    result: ref[SrdRef[Core.Ast.Node]]
 ) => Bool;
 handler this.buildAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, SrdRef[Core.Basic.TiObject]]],
-    result: ref[SrdRef[Core.Basic.TiObject]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, SrdRef[Core.Ast.Node]]],
+    result: ref[SrdRef[Core.Ast.Node]]
 ) => Bool;
 handler this.buildAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, ref[Core.Basic.TiObject]]]
-): SrdRef[Core.Basic.TiObject];
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, ref[Core.Ast.Node]]]
+): SrdRef[Core.Ast.Node];
 ```
 
 هذه الدالة مشابهة لدالة `احشر_شبم` غير أنها تنشئ شجرة البنية المجردة وترجعها للمستدعي بدل أن تحشرها
@@ -717,11 +717,11 @@ handler this.buildAst(
 ```
   عرف ع: صـحيح؛
   لكل ع = 0، ع < 5، ++ع {
-      عرف عداد: نـص_بهوية = نـص.املأ("%i"، ع)؛
-      عرف نتيجة: سـندنا[كـائن_بهوية]؛
+      عرف عداد: الـقلب.شـبم.نـص_حرفي(نـص.املأ("%i"، ع))؛
+      عرف نتيجة: سـندنا[الـقلب.شـبم.عـقدة]؛
       نـبم.مدير_شبم.أنشئ_شبم(
           شبم { عرف ن__عداد__: صـحيح }،
-          تـطبيق[نـص، سند[كـائن_بهوية]]().حدد(نـص("عداد")، عداد)،
+          تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]().حدد(نـص("عداد")، عداد)،
           نتيجة
       )؛
       نـبم.مدير_شبم.احشر_شبم(
@@ -729,7 +729,7 @@ handler this.buildAst(
               تعريف؛
               ن__عداد__ = 0؛
           }،
-          تـطبيق[نـص، سند[كـائن_بهوية]]()
+          تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]()
               .حدد(نـص("عداد")، عداد)
               .حدد(نـص("تعريف")، نتيجة)
       )؛
@@ -739,11 +739,11 @@ handler this.buildAst(
 ```
   def i: Int;
   for i = 0, i < 10, ++i {
-      def counter: TiStr = String.format("%i", i);
-      def result: SrdRef[TiObject];
+      def counter: Core.Ast.StringLiteral(String.format("%i", i));
+      def result: SrdRef[Core.Ast.Node];
       Spp.astMgr.buildAst(
           ast { def n__counter__: Int },
-          Map[String, ref[TiObject]]().set(String("counter"), counter),
+          Map[String, ref[Core.Ast.Node]]().set(String("counter"), counter),
           result
       );
       Spp.astMgr.insertAst(
@@ -751,7 +751,7 @@ handler this.buildAst(
               definition;
               n__counter = 0;
           },
-          Map[String, ref[TiObject]]()
+          Map[String, ref[Core.Ast.Node]]()
               .set(String("counter"), counter)
               .set(String("definition"), result)
       );
@@ -761,13 +761,13 @@ handler this.buildAst(
 #### احشر_عمليات_النسخ (insertCopyHandlers)
 
 ```
-عملية هذا.احشر_عمليات_النسخ (عنصر: سند[كـائن_بهوية])؛
+عملية هذا.احشر_عمليات_النسخ (عنصر: سند[الـقلب.شـبم.عـقدة])؛
 
 @عضو ماكرو احشر_عمليات_النسخ [هذا]؛
 ```
 
 ```
-handler this.insertCopyHandlers(obj: ref[TiObject]);
+handler this.insertCopyHandlers(obj: ref[Core.Ast.Node]);
 
 @member macro insertCopyHandlers [this];
 ```
@@ -779,13 +779,13 @@ handler this.insertCopyHandlers(obj: ref[TiObject]);
 #### احشر_مكون (insertMixin)
 
 ```
-عملية هذا.احشر_مكون (عنصر: سند[كـائن_بهوية])؛
+عملية هذا.احشر_مكون (عنصر: سند[الـقلب.شـبم.عـقدة])؛
 
 @عضو ماكرو احشر_مكون [هذا، مستهدف]؛
 ```
 
 ```
-handler this.insertMixin(obj: ref[TiObject]);
+handler this.insertMixin(obj: ref[Core.Ast.Node]);
 
 @member macro insertMixin [this, target];
 ```
@@ -798,11 +798,11 @@ handler this.insertMixin(obj: ref[TiObject]);
 #### هات_مالك_عبارة_التمهيد_الحالية (getCurrentPreprocessOwner)
 
 ```
-عملية هذا.هات_مالك_عبارة_التمهيد_الحالية (): سند[الـقلب.أسـاسيات.كـائن_بهوية]
+عملية هذا.هات_مالك_عبارة_التمهيد_الحالية (): سند[الـقلب.شـبم.عـقدة]
 ```
 
 ```
-handler this.getCurrentPreprocessOwner(): ref[Core.Basic.TiObject];
+handler this.getCurrentPreprocessOwner(): ref[Core.Ast.Node];
 ```
 
 ترجع هذه الدالة سندًا لعنصر شبم الذي يملك عبارة التمهيد قيد التنفيذ.
@@ -823,12 +823,12 @@ handler this.getCurrentPreprocessInsertionPosition(): Int;
 
 ```
 عملية هذا.هات_نطاق_المتغير (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    عنصر: سند[الـقلب.شـبم.عـقدة]
 ): صـحيح
 ```
 
 ```
-handler this.getVariableDomain(element: ref[Core.Basic.TiObject]) => Int;
+handler this.getVariableDomain(element: ref[Core.Ast.Node]) => Int;
 ```
 
 ترجع هذه الدالة قيمة توضح النطاق الذي عُرف فيه المتغير المعطى للدالة. الناتج واحد هذه القيم:
@@ -852,11 +852,11 @@ handler this.getVariableDomain(element: ref[Core.Basic.TiObject]) => Int;
 #### تتبع_الصنف (traceType)
 
 ```
-عملية هذا.تتبع_الصنف (عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]): سند[نـبم.شـبم.صـنف]
+عملية هذا.تتبع_الصنف (عنصر: سند[الـقلب.شـبم.عـقدة]): سند[نـبم.شـبم.صـنف]
 ```
 
 ```
-handler this.traceType(element: ref[Core.Basic.TiObject]) => ref[Spp.Ast.Type];
+handler this.traceType(element: ref[Core.Ast.Node]) => ref[Spp.Ast.Type];
 ```
 
 تتبع هذه الدالة الصنف المشار إليه بعنصر ش.ب.م المعطى وترجع ذلك الصنف.
@@ -866,16 +866,16 @@ handler this.traceType(element: ref[Core.Basic.TiObject]) => ref[Spp.Ast.Type];
 ```
 عملية هذا.طابق_طبعة_قالب (
     القالب: سند[نـبم.شـبم.قـالب]،
-    مدخل_القالب: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    الناتج: سند[سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]]
+    مدخل_القالب: سند[الـقلب.شـبم.عـقدة]،
+    الناتج: سند[سـندنا[الـقلب.شـبم.عـقدة]]
 ) => ثـنائي؛
 ```
 
 ```
 handler this.matchTemplateInstance(
     template: ref[Spp.Ast.Template],
-    templateInput: ref[Core.Basic.TiObject],
-    result: ref[SrdRef[Core.Basic.TiObject]]
+    templateInput: ref[Core.Ast.Node],
+    result: ref[SrdRef[Core.Ast.Node]]
 ) => Bool;
 ```
 
@@ -885,16 +885,16 @@ handler this.matchTemplateInstance(
 
 ```
 عملية هذا.أهو_قابل_للتمثيل (
-    الصنف_الأصلي: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    الصنف_المطلوب: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
+    الصنف_الأصلي: سند[الـقلب.شـبم.عـقدة]،
+    الصنف_المطلوب: سند[الـقلب.شـبم.عـقدة]،
     تمثيل_تلقائي: ثـنائي
 ) => ثـنائي؛
 ```
 
 ```
 handler this.isCastableTo(
-    srcTypeRef: ref[Core.Basic.TiObject],
-    targetTypeRef: ref[Core.Basic.TiObject],
+    srcTypeRef: ref[Core.Ast.Node],
+    targetTypeRef: ref[Core.Ast.Node],
     implicit: Bool
 ) => Bool;
 ```
@@ -907,16 +907,16 @@ handler this.isCastableTo(
 
 ```
 عملية هذا.استنبط_صنف_الناتج (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    ناتج: سند[سند[الـقلب.أسـاسيات.كـائن_بهوية]]،
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    ناتج: سند[سند[الـقلب.شـبم.عـقدة]]،
     الناتج_قيمة: سند[ثـنائي]
 ): سند[ثـنائي]
 ```
 
 ```
 handler this.computeResultType(
-    element: ref[Core.Basic.TiObject],
-    result: ref[ref[Core.Basic.TiObject]],
+    element: ref[Core.Ast.Node],
+    result: ref[ref[Core.Ast.Node]],
     resultIsValue: ref[Bool]
 ) => Bool;
 ```
@@ -929,35 +929,35 @@ handler this.computeResultType(
 
 ```
 عملية هذا.كرر_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]
-): مـتم.سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]؛
+    عنصر: سند[الـقلب.شـبم.عـقدة]
+): مـتم.سـندنا[الـقلب.شـبم.عـقدة]؛
 عملية هذا.كرر_شبم (
-    عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية]،
-    عنصر_موقع_الشفرة_المصدرية: سند[الـقلب.أسـاسيات.كـائن_بهوية]
-): مـتم.سـندنا[الـقلب.أسـاسيات.كـائن_بهوية]؛
+    عنصر: سند[الـقلب.شـبم.عـقدة]،
+    عنصر_موقع_الشفرة_المصدرية: سند[الـقلب.شـبم.عـقدة]
+): مـتم.سـندنا[الـقلب.شـبم.عـقدة]؛
 ```
 
 ```
-handler this.cloneAst(element: ref[Core.Basic.TiObject]): Srl.SrdRef[Core.Basic.TiObject] {
-    return this.cloneAst(element, nullRef[Core.Basic.TiObject]);
+handler this.cloneAst(element: ref[Core.Ast.Node]): Srl.SrdRef[Core.Ast.Node] {
+    return this.cloneAst(element, nullRef[Core.Ast.Node]);
 }
 handler this.cloneAst(
-    element: ref[Core.Basic.TiObject], sourceLocationNode: ref[Core.Basic.TiObject]
-): Srl.SrdRef[Core.Basic.TiObject];
+    element: ref[Core.Ast.Node], sourceLocationNode: ref[Core.Ast.Node]
+): Srl.SrdRef[Core.Ast.Node];
 ```
 
 تنسخ هذه الدالة شجرة الكائنات المعطاة. النسخة الثانية من هذه الدالة تتيح لك إضافة موقع في الشفرة
 المصدرية إلى مكدس مواقع الشفرة المصدرية المرتبطة بالشجرة المولدة. المعطى الثاني في النسخة الثانية
 ليس موقع الشفرة المصدرية المراد إضافته إلى المكدس وإنما عنصر ش.ب.م المراد أخذ الموقع منه.
 
-#### أدرج_بيانات (dumpData)
+#### أدرج_شبم (dumpAst)
 
 ```
-عملية هذا.أدرج_بيانات (عنصر: سند[الـقلب.أسـاسيات.كـائن_بهوية])؛
+عملية هذا.أدرج_شبم (عنصر: سند[الـقلب.شـبم.عـقدة])؛
 ```
 
 ```
-handler this.dumpData(obj: ref[Core.Basic.TiObject]);
+handler this.dumpAst(obj: ref[Core.Ast.Node]);
 ```
 
 تطبع شجرة البيانات المعطاة في الطرفية بصيغة نصية.
@@ -966,13 +966,13 @@ handler this.dumpData(obj: ref[Core.Basic.TiObject]);
 
 ```
 عملية هذا.هات_صنف_السند_ل (
-    صنف_شبم: سند[الـقلب.أسـاسيات.كـائن_بهوية]
+    صنف_شبم: سند[الـقلب.شـبم.عـقدة]
 ): سند[نـبم.شـبم.صـنف_سند]؛
 ```
 
 ```
 handler this.getReferenceTypeFor(
-    astType: ref[Core.Basic.TiObject]
+    astType: ref[Core.Ast.Node]
 ): ref[Spp.Ast.ReferenceType];
 ```
 

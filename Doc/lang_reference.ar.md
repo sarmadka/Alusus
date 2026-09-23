@@ -2686,8 +2686,8 @@ myFunc(Record()); // Will call the custom operation and allocate dynamically
       لكل ع = 0، ع &lt; متغيرات.هات_الطول()، ++ع {
           نـبم.مدير_شبم.احشر_شبم(
               شبم { هذا.اسم = 0 }،
-              تـطبيق[نـص، سند[الـقلب.أسـاسيات.كـائن_بهوية]]()
-                  .حدد(نـص("اسم")، الـقلب.أسـاسيات.نـص_بهوية(متغيرات(ع)))
+              تـطبيق[نـص، سند[الـقلب.شـبم.عـقدة]]()
+                  .حدد(نـص("اسم")، الـقلب.شـبم.نـص_حرفي(متغيرات(ع)))
           )؛
       }
   }
@@ -2700,8 +2700,8 @@ myFunc(Record()); // Will call the custom operation and allocate dynamically
       for i = 0, i &lt; vars.getLength(), ++i {
           Spp.astMgr.insertAst(
               ast { this.name = 0 },
-              Map[String, ref[Core.Basic.TiObject]]()
-                  .set(String("name"), Core.Basic.TiStr(vars(i)))
+              Map[String, ref[Core.Ast.Node]]()
+                  .set(String("name"), Core.Ast.StringLiteral(vars(i)))
           );
       }
   }

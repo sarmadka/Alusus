@@ -327,7 +327,7 @@ Get the name of the memnber with the given index.
 
 Returns the index of the memnber with the given name, or -1 if not found.
 
-### Containing Interface
+### Containing[ContentType: type] Interface
 
 Defined inside module `Core.Basic`.
 
@@ -344,7 +344,7 @@ This interface contains the following functions:
 #### setElement
 
 ```
-  handler this.setElement (index: Int, value: ref[TiObject]);
+  handler this.setElement (index: Int, value: ref[ContentType]);
 ```
 
 Set a new object to the element with the given index.
@@ -360,7 +360,7 @@ Get the number of elements that this object contains.
 #### getElement
 
 ```
-  handler this.getElement (index: Int): ref[TiObject];
+  handler this.getElement (index: Int): ref[ContentType];
 ```
 
 Get the element with the given index.
@@ -373,7 +373,7 @@ Get the element with the given index.
 
 Get the info of the required type for the element with the given index.
 
-### DynamicContaining Interface
+### DynamicContaining[ContentType: type] Interface
 
 Defined inside module `Core.Basic`.
 
@@ -384,7 +384,7 @@ functions in addition to the functions that are available in `Containing` interf
 #### addElement
 
 ```
-  handler this.addElement (value: ref[TiObject]): Int;
+  handler this.addElement (value: ref[ContentType]): Int;
 ```
 
 
@@ -393,7 +393,7 @@ Adds new element to the end of the container, and returns the index of the new e
 #### insertElement
 
 ```
-  handler this.insertElement (index: Int, value: ref[TiObject]);
+  handler this.insertElement (index: Int, value: ref[ContentType]);
 ```
 
 
@@ -415,7 +415,7 @@ Removes the element at the given index, and shifts all elements that are after t
 
 Get the info of the required type for the container's elements without the need to set any specific element.
 
-### MapContaining Interface
+### MapContaining[ContentType: type] Interface
 
 Defined inside module `Core.Basic`.
 
@@ -426,7 +426,7 @@ instead if their index. This interface contains the following functions:
 
 ```
   handler this.setElement (
-    elementName: ptr[array[Char]], value: ref[TiObject]
+    elementName: ptr[array[Char]], value: ref[ContentType]
   ): Int;
 ```
 
@@ -435,7 +435,7 @@ Set a new value for the element with the given name and returns the index of tha
 #### getElement
 
 ```
-  handler this.getElement (elementName: ptr[array[Char]]): ref[TiObject];
+  handler this.getElement (elementName: ptr[array[Char]]): ref[ContentType];
 ```
 
 Get the value of the element with the given name.
@@ -466,7 +466,7 @@ Get the name of the element with the given index.
 
 Get the index of the element with the given name, or -1 if not found.
 
-### DynamicMapContaining Interface
+### DynamicMapContaining[ContentType: type] Interface
 
 Defined inside module `Core.Basic`.
 
@@ -477,7 +477,7 @@ This interface contains the following functions:
 
 ```
   handler this.addElement (
-    name: ptr[array[Char]], value: ref[TiObject]
+    name: ptr[array[Char]], value: ref[ContentType]
   ): Int;
 ```
 
@@ -487,7 +487,7 @@ Adds ew element with the given name to the container and returns the index of th
 
 ```
   handler this.insertElement (
-    index: Int, name: ptr[array[Char]], value: ref[TiObject]
+    index: Int, name: ptr[array[Char]], value: ref[ContentType]
   );
 ```
 
@@ -519,10 +519,10 @@ to ease their work.
 
 ### Node Class
 
-Defined inside module `Core.Data`.
+Defined inside module `Core.Ast`.
 
 It is derived from `TiObject`.
-This is a root for other data classes like AST's classes. This class allows an object to access its owner.
+This is the root of AST classes. This class allows an object to access its owner.
 
 #### owner: ref[Node]
 
@@ -538,7 +538,7 @@ This function returns a reference to this type info, which means the info of obj
 
 ### Text Types
 
-Defined inside module `Core.Data.Ast`.
+Defined inside module `Core.Ast`.
 
 It is derived from Node.
 These classes contain a single text section from the source code, without operators or expressions.
@@ -596,7 +596,7 @@ A list of text types:
 
 ### Commands And Expressions Types
 
-Defined inside module `Core.Data.Ast`.
+Defined inside module `Core.Ast`.
 
 It is derived from Node.
 The following is a list of types that represent expressions and commands. These classes do not have public functions

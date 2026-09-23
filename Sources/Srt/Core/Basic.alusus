@@ -2,7 +2,7 @@
  * @file Core/Basic.alusus
  * Interoperability definitions for the Core's basic definitions.
  *
- * @copyright Copyright (C) 2024 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -26,6 +26,17 @@ import "Srl/String";
                 @shared def typeInfo: ref[Core.Basic.TypeInfo];
                 if typeInfo~ptr == 0 {
                     typeInfo~ptr = Core.Basic.getFromGlobalStorage(typeName)~cast[ptr[Core.Basic.TypeInfo]];
+                }
+                return typeInfo;
+            }
+        }
+
+        macro defTypeInfoGetter[typeName, tplArg] {
+            func getTypeInfo (): ref[Core.Basic.TypeInfo] {
+                @shared def typeInfo: ref[Core.Basic.TypeInfo];
+                if typeInfo~ptr == 0 {
+                    def fullTypeName: String = String(typeName) + "<" + tplArg.getTypeInfo().uniqueName + ">";
+                    typeInfo~ptr = Core.Basic.getFromGlobalStorage(fullTypeName)~cast[ptr[Core.Basic.TypeInfo]];
                 }
                 return typeInfo;
             }
@@ -211,32 +222,36 @@ import "Srl/String";
             defTypeInfoGetter["alusus.org/Core/Core.Basic.Binding"]
         }
 
-        class Containing {
+        class Containing [ContentType: type] {
             @injection def tiInterface: TiInterface;
 
             @expname[Containing_setElement]
-            handler this.setElement (Int, ref[TiObject]);
+            handler this.setElement (Int, ref[ContentType]);
 
             @expname[Containing_getElementCount]
             handler this.getElementCount ():Word;
 
             @expname[Containing_getElement]
-            handler this.getElement (Int):ref[TiObject];
+            handler this.getElement (Int):ref[ContentType];
 
             @expname[Containing_getElementNeededType]
             handler this.getElementNeededType (Int):ref[TypeInfo];
 
-            defTypeInfoGetter["alusus.org/Core/Core.Basic.Containing<alusus.org/Core/Core.Basic.TiObject>"]
+            defTypeInfoGetter["alusus.org/Core/Core.Basic.Containing", ContentType];
+
+            preprocess {
+                prefixAlususTemplateClassFuncExpNames(this_type~ast~ptr, ContentType~ast~ptr);
+            }
         }
 
-        class DynamicContaining {
-            @injection def containing: Containing;
+        class DynamicContaining [ContentType: type] {
+            @injection def containing: Containing[ContentType];
 
             @expname[DynamicContaining_addElement]
-            handler this.addElement (ref[TiObject]): Int;
+            handler this.addElement (ref[ContentType]): Int;
 
             @expname[DynamicContaining_insertElement]
-            handler this.insertElement (Int, ref[TiObject]);
+            handler this.insertElement (Int, ref[ContentType]);
 
             @expname[DynamicContaining_removeElement]
             handler this.removeElement (Int);
@@ -244,17 +259,21 @@ import "Srl/String";
             @expname[DynamicContaining_getElementsNeededType]
             handler this.getElementsNeededType ():ref[TypeInfo];
 
-            defTypeInfoGetter["alusus.org/Core/Core.Basic.DynamicContaining<alusus.org/Core/Core.Basic.TiObject>"]
+            defTypeInfoGetter["alusus.org/Core/Core.Basic.DynamicContaining", ContentType];
+
+            preprocess {
+                prefixAlususTemplateClassFuncExpNames(this_type~ast~ptr, ContentType~ast~ptr);
+            }
         }
 
-        class MapContaining {
-            @injection def containing: Containing;
+        class MapContaining [ContentType: type] {
+            @injection def containing: Containing[ContentType];
 
             @expname[MapContaining_setElement]
-            handler this.setElement (ptr[array[Char]], ref[TiObject]): Int;
+            handler this.setElement (ptr[array[Char]], ref[ContentType]): Int;
 
             @expname[MapContaining_getElement]
-            handler this.getElement (ptr[array[Char]]): ref[TiObject];
+            handler this.getElement (ptr[array[Char]]): ref[ContentType];
 
             @expname[MapContaining_getElementNeededType]
             handler this.getElementNeededType (ptr[array[Char]]):ref[TypeInfo];
@@ -265,17 +284,21 @@ import "Srl/String";
             @expname[MapContaining_findElementIndex]
             handler this.findElementIndex (ptr[array[Char]]): Int;
 
-            defTypeInfoGetter["alusus.org/Core/Core.Basic.MapContaining<alusus.org/Core/Core.Basic.TiObject>"]
+            defTypeInfoGetter["alusus.org/Core/Core.Basic.MapContaining", ContentType];
+
+            preprocess {
+                prefixAlususTemplateClassFuncExpNames(this_type~ast~ptr, ContentType~ast~ptr);
+            }
         }
 
-        class DynamicMapContaining {
-            @injection def mapContaining: MapContaining;
+        class DynamicMapContaining [ContentType: type] {
+            @injection def mapContaining: MapContaining[ContentType];
 
             @expname[DynamicMapContaining_addElement]
-            handler this.addElement (ptr[array[Char]], ref[TiObject]): Int;
+            handler this.addElement (ptr[array[Char]], ref[ContentType]): Int;
 
             @expname[DynamicMapContaining_insertElement]
-            handler this.insertElement (Int, ptr[array[Char]], ref[TiObject]);
+            handler this.insertElement (Int, ptr[array[Char]], ref[ContentType]);
 
             @expname[DynamicMapContaining_removeElementByIndex]
             handler this.removeElement (Int);
@@ -286,19 +309,25 @@ import "Srl/String";
             @expname[DynamicMapContaining_getElementsNeededType]
             handler this.getElementsNeededType ():ref[TypeInfo];
 
-            defTypeInfoGetter["alusus.org/Core/Core.Basic.DynamicMapContaining<alusus.org/Core/Core.Basic.TiObject>"]
+            defTypeInfoGetter["alusus.org/Core/Core.Basic.DynamicMapContaining", ContentType];
+
+            preprocess {
+                prefixAlususTemplateClassFuncExpNames(this_type~ast~ptr, ContentType~ast~ptr);
+            }
         }
 
         macro BindingOf [obj] ref[Core.Basic.Binding](Core.Basic.getInterface[obj, Core.Basic.Binding]);
-        macro ContainerOf [obj] ref[Core.Basic.Containing](Core.Basic.getInterface[obj, Core.Basic.Containing]);
-        macro DynContainerOf [obj] ref[Core.Basic.DynamicContaining](
-            Core.Basic.getInterface[obj, Core.Basic.DynamicContaining]
+        macro ContainerOf [obj, ContentType] ref[Core.Basic.Containing[ContentType]](
+            Core.Basic.getInterface[obj, Core.Basic.Containing[ContentType]]
         );
-        macro MapContainerOf [obj] ref[Core.Basic.MapContaining](
-            Core.Basic.getInterface[obj, Core.Basic.MapContaining]
+        macro DynContainerOf [obj, ContentType] ref[Core.Basic.DynamicContaining[ContentType]](
+            Core.Basic.getInterface[obj, Core.Basic.DynamicContaining[ContentType]]
         );
-        macro DynMapContainerOf [obj] ref[Core.Basic.DynamicMapContaining](
-            Core.Basic.getInterface[obj, Core.Basic.DynamicMapContaining]
+        macro MapContainerOf [obj, ContentType] ref[Core.Basic.MapContaining[ContentType]](
+            Core.Basic.getInterface[obj, Core.Basic.MapContaining[ContentType]]
+        );
+        macro DynMapContainerOf [obj, ContentType] ref[Core.Basic.DynamicMapContaining[ContentType]](
+            Core.Basic.getInterface[obj, Core.Basic.DynamicMapContaining[ContentType]]
         );
     }
 }

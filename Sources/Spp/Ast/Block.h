@@ -2,7 +2,7 @@
  * @file Spp/Ast/Block.h
  * Contains the header of class Spp::Ast::Block.
  *
- * @copyright Copyright (C) 2021 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -16,12 +16,12 @@
 namespace Spp::Ast
 {
 
-class Block : public Core::Data::Ast::Scope
+class Block : public Core::Ast::Scope
 {
   //============================================================================
   // Type Info
 
-  TYPE_INFO(Block, Core::Data::Ast::Scope, "Spp.Ast", "Spp", "alusus.org");
+  TYPE_INFO(Block, Core::Ast::Scope, "Spp.Ast", "Spp", "alusus.org");
   OBJECT_FACTORY(Block);
 
 
@@ -71,7 +71,7 @@ class Block : public Core::Data::Ast::Scope
     return this->injectionsIndex.getSize();
   }
 
-  public: TiObject* getInjection(Int index) const;
+  public: Core::Ast::Node* getInjection(Int index) const;
 
   /// @}
 

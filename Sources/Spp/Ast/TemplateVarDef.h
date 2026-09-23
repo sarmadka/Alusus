@@ -2,7 +2,7 @@
  * @file Spp/Ast/TemplateVarDef.h
  * Contains the header of class Spp::Ast::TemplateVarDef.
  *
- * @copyright Copyright (C) 2023 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -33,13 +33,13 @@ ti_s_enum(TemplateVarType, TiInt, "Spp.Ast", "Spp", "alusus.org",
 //============================================================================
 // TemplateVarDef class
 
-class TemplateVarDef: public Core::Data::Node, public Binding, public Core::Data::Ast::MetaHaving
+class TemplateVarDef: public Core::Ast::Node, public Binding, public Core::Ast::MetaHaving
 {
   //============================================================================
   // Type Info
 
-  TYPE_INFO(TemplateVarDef, Core::Data::Node, "Spp.Ast.Template", "Spp", "alusus.org", (
-    INHERITANCE_INTERFACES(Binding, Core::Data::Ast::MetaHaving)
+  TYPE_INFO(TemplateVarDef, Core::Ast::Node, "Spp.Ast.Template", "Spp", "alusus.org", (
+    INHERITANCE_INTERFACES(Binding, Core::Ast::MetaHaving)
   ));
   OBJECT_FACTORY(TemplateVarDef);
 
@@ -49,7 +49,7 @@ class TemplateVarDef: public Core::Data::Node, public Binding, public Core::Data
 
   private: TiStr name;
   private: TemplateVarType type;
-  private: TioSharedPtr defaultVal;
+  private: SharedPtr<Core::Ast::Node> defaultVal;
 
 
   //============================================================================
@@ -59,10 +59,10 @@ class TemplateVarDef: public Core::Data::Node, public Binding, public Core::Data
 
   IMPLEMENT_BINDING(Binding,
     (prodId, TiWord, VALUE, setProdId(value), &prodId),
-    (sourceLocation, Core::Data::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get()),
+    (sourceLocation, Core::Ast::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get()),
     (name, TiStr, VALUE, setName(value), &this->name),
     (type, TemplateVarType, VALUE, setType(value), &this->type),
-    (defaultVal, TiObject, SHARED_REF, setDefaultVal(value), this->defaultVal.get())
+    (defaultVal, Core::Ast::Node, SHARED_REF, setDefaultVal(value), this->defaultVal.get())
   );
 
 
@@ -73,7 +73,7 @@ class TemplateVarDef: public Core::Data::Node, public Binding, public Core::Data
 
   IMPLEMENT_ATTR_CONSTRUCTOR(TemplateVarDef);
 
-  public: TemplateVarDef(Char const *n, TemplateVarType t, TioSharedPtr const &v = TioSharedPtr())
+  public: TemplateVarDef(Char const *n, TemplateVarType t, SharedPtr<Core::Ast::Node> const &v = SharedPtr<Core::Ast::Node>())
     : name(n), type(t), defaultVal(v)
   {
     OWN_SHAREDPTR(this->defaultVal);
@@ -116,16 +116,16 @@ class TemplateVarDef: public Core::Data::Node, public Binding, public Core::Data
     return this->type;
   }
 
-  public: void setDefaultVal(TioSharedPtr const &val)
+  public: void setDefaultVal(SharedPtr<Core::Ast::Node> const &val)
   {
     UPDATE_OWNED_SHAREDPTR(this->defaultVal, val);
   }
-  private: void setDefaultVal(TiObject *val)
+  private: void setDefaultVal(Core::Ast::Node *val)
   {
     this->setDefaultVal(getSharedPtr(val));
   }
 
-  public: TioSharedPtr const& getDefaultVal() const
+  public: SharedPtr<Core::Ast::Node> const& getDefaultVal() const
   {
     return this->defaultVal;
   }

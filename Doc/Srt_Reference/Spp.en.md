@@ -11,7 +11,7 @@ This singleton object allows the user to deal with the executable code generator
 #### dumpLlvmIrForElement
 
 ```
-  handler this.dumpLlvmIrForElement (element: ref[TiObject]);
+  handler this.dumpLlvmIrForElement (element: ref[Core.Ast.Node]);
 ```
 
 `dumpLlvmIrForElement` function prints the intermediate code for a specific element from the source code. The printed intermediate code
@@ -30,7 +30,7 @@ shown in the next example:
 
 ```
   handler this.buildObjectFileForElement (
-    element: ref[TiObject],
+    element: ref[Core.Ast.Node],
     filename: ptr[array[Char]],
     targetTriple: ptr[array[Char]]
   ): Bool;
@@ -53,7 +53,7 @@ This function returns 1 in case of success, 0 otherwise.
 
 ```
   func raiseBuildNotice (
-    code: ptr[array[Char]], severity: Int, astNode: ref[TiObject]
+    code: ptr[array[Char]], severity: Int, astNode: ref[Core.Ast.Node]
   );
 ```
 
@@ -94,12 +94,12 @@ This singleton object allows the user to create new grammar rules for the langua
 #### addCustomCommand
 
 ```
-def TiObject: alias Core.Basic.TiObject;
+def AstNode: alias Core.Ast.Node;
 
 handler this.addCustomCommand (
     identifier: ptr[array[Char]],
-    grammarAst: ref[TiObject],
-    handler: ptr[func (SrdRef[TiObject]): SrdRef[TiObject]]
+    grammarAst: ref[AstNode],
+    handler: ptr[func (SrdRef[AstNode]): SrdRef[AstNode]]
 );
 ```
 
@@ -136,7 +136,7 @@ Spp.grammarMgr.addCustomCommand(
         keywords: "test_cmd";
         args: "module".Expression(0, 2) + "module".Set*(1,1);
     },
-    func (args: SrdRef[TiObject]): SrdRef[TiObject] { ... }
+    func (args: SrdRef[Core.Ast.Node]): SrdRef[Core.Ast.Node] { ... }
 );
 ```
 
@@ -147,12 +147,12 @@ must appear exactly once.
 #### addCustomGrammar
 
 ```
-def TiObject: alias Core.Basic.TiObject;
+def AstNode: alias Core.Ast.Node;
 
 handler this.addCustomGrammar (
     identifier: ptr[array[Char]],
     baseIdentifier: ptr[array[Char]],
-    grammarAst: ref[TiObject]
+    grammarAst: ref[Core.Ast.Node]
 );
 ```
 
@@ -203,18 +203,18 @@ This singleton object contains a functions for dealing with AST. It contains the
 
 ```
 handler this.findElements (
-    comparison: ref[Core.Basic.TiObject],
-    target: ref[Core.Basic.TiObject],
+    comparison: ref[Core.Ast.Node],
+    target: ref[Core.Ast.Node],
     flags: Word
-): Array[ref[Core.Basic.TiObject]];
+): Array[ref[Core.Ast.Node]];
 
 handler this.findElements(
-    comparison: ref[TiObject],
-    target: ref[TiObject],
+    comparison: ref[Core.Ast.Node],
+    target: ref[Core.Ast.Node],
     flags: Word,
     modifierKwd: CharsPtr,
     kwdTranslations: ref[Map[String, String]]
-): Array[ref[TiObject]];
+): Array[ref[Core.Ast.Node]];
 ```
 
 Searches through the soruce code for elements that match the given search criteria.
@@ -272,7 +272,7 @@ condition that contains `and` and `or` operators. Some examples of search criter
 
 ```
   handler this.getDefinitionName (
-      element: ref[Core.Basic.TiObject]
+      element: ref[Core.Ast.Node]
   ): String;
 ```
 
@@ -282,8 +282,8 @@ Returns the name of the given element, which is the name of the definition ownin
 
 ```
   handler this.getModifiers (
-      element: ref[Core.Basic.TiObject]
-  ): ref[Core.Basic.Containing];
+      element: ref[Core.Ast.Node]
+  ): ref[Core.Basic.Containing[Core.Ast.Node]];
 ```
 
 Get the list of modifiers applied on the given element.
@@ -292,9 +292,9 @@ Get the list of modifiers applied on the given element.
 
 ```
   handler this.findModifier(
-      modifiers: ref[Core.Basic.Containing],
+      modifiers: ref[Core.Basic.Containing[Core.Ast.Node]],
       kwd: ptr[array[Char]]
-  ): ref[Core.Basic.TiObject];
+  ): ref[Core.Ast.Node];
 ```
 
 Find a modifier inside a list of modifiers. Seach is done using the keyword of the modifier. For example, to seach for
@@ -304,15 +304,15 @@ Find a modifier inside a list of modifiers. Seach is done using the keyword of t
 
 ```
   handler this.findModifierForElement(
-    element: ref[Core.Basic.TiObject],
+    element: ref[Core.Ast.Node],
     kwd: ptr[array[Char]]
-  ): ref[Core.Basic.TiObject];
+  ): ref[Core.Ast.Node];
 
   handler this.findModifierForElement(
-    element: ref[Core.Basic.TiObject],
+    element: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
-  ): ref[Core.Basic.TiObject];
+  ): ref[Core.Ast.Node];
 ```
 
 Find the modifier by the given keyword on the given element. The second form of this method translates
@@ -322,7 +322,7 @@ modifiers against the given translations map before comparing them against the r
 
 ```
   handler this.getModifierKeyword(
-    modifier: ref[Core.Basic.TiObject]
+    modifier: ref[Core.Ast.Node]
   ): Srl.String;
 ```
 
@@ -332,8 +332,8 @@ Returns the keyword for the given modifier.
 
 ```
 handler this.getModifierParams(
-    modifier: ref[Core.Basic.TiObject],
-    result: ref[Array[Core.Basic.TiObject]]
+    modifier: ref[Core.Ast.Node],
+    result: ref[Array[Core.Ast.Node]]
 ) => Bool;
 ```
 
@@ -344,7 +344,7 @@ This functions returns a boolean with value 1 on success, and 0 on failure.
 
 ```
 handler this.getModifierStringParams(
-    modifier: ref[Core.Basic.TiObject],
+    modifier: ref[Core.Ast.Node],
     result: ref[Array[String]]
 ) => Bool;
 ```
@@ -356,13 +356,13 @@ This functions returns a boolean with value 1 on success, and 0 on failure.
 #### getClassVars
 
 ```
-handler this.getClassVars (parent: ref[TiObject]): Array[ref[TiObject]];
+handler this.getClassVars (parent: ref[Core.Ast.Node]): Array[ref[Core.Ast.Node]];
 
 handler this.getClassVars (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
-): Array[ref[TiObject]];
+): Array[ref[Core.Ast.Node]];
 ```
 
 Gets the list of variables of a given type. The second version brings only the variables carrying a
@@ -371,10 +371,10 @@ specific modifier.
 #### getClassVarNames
 
 ```
-handler this.getClassVarNames (parent: ref[TiObject]): Array[String];
+handler this.getClassVarNames (parent: ref[Core.Ast.Node]): Array[String];
 
 handler this.getClassVarNames (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
 ): Array[String];
@@ -386,13 +386,13 @@ variables carrying a given modifier.
 #### getClassFuncs
 
 ```
-handler this.getClassFuncs (parent: ref[TiObject]): Array[ref[TiObject]];
+handler this.getClassFuncs (parent: ref[Core.Ast.Node]): Array[ref[Core.Ast.Node]];
 
 handler this.getClassFuncs (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
-): Array[ref[TiObject]];
+): Array[ref[Core.Ast.Node]];
 ```
 
 Get the list of functions of a given type. The second version brings only the functions carrying
@@ -401,10 +401,10 @@ a given modifier.
 #### getClassFuncNames
 
 ```
-handler this.getClassFuncNames (parent: ref[TiObject]): Array[String];
+handler this.getClassFuncNames (parent: ref[Core.Ast.Node]): Array[String];
 
 handler this.getClassFuncNames (
-    parent: ref[TiObject],
+    parent: ref[Core.Ast.Node],
     kwd: ptr[array[Char]],
     kwdTranslations: ref[Map[String, String]]
 ): Array[String];
@@ -416,7 +416,7 @@ functions having a specific modifier.
 #### getFuncArgTypes
 
 ```
-handler this.getFuncArgTypes (element: ref[TiObject]): ref[TiObject]
+handler this.getFuncArgTypes (element: ref[Core.Ast.Node]): ref[Core.Ast.Node]
 ```
 
 Gets the list of argument definitions for the given function.
@@ -424,7 +424,7 @@ Gets the list of argument definitions for the given function.
 #### getFuncArgType
 
 ```
-handler this.getFuncArgType (element: ref[TiObject], index: Int): ref[TiObject]
+handler this.getFuncArgType (element: ref[Core.Ast.Node], index: Int): ref[Core.Ast.Node]
 ```
 
 Gets the definition of the given function's argument at the given index.
@@ -433,7 +433,7 @@ Gets the definition of the given function's argument at the given index.
 
 ```
 handler this.getSourceFullPathForElement(
-    element: ref[Core.Basic.TiObject]
+    element: ref[Core.Ast.Node]
 ) => String;
 ```
 
@@ -443,7 +443,7 @@ Returns the full file name with the path for the source code file that contains 
 
 ```
 handler this.getSourceDirectoryForElement(
-    element: ref[Core.Basic.TiObject]
+    element: ref[Core.Ast.Node]
 ) => String;
 ```
 
@@ -453,12 +453,12 @@ Returns the full folder path which contains the source code file that contains t
 
 ```
 handler this.insertAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, ref[Core.Basic.TiObject]]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, ref[Core.Ast.Node]]]
 ) => Bool;
 handler this.insertAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, SrdRef[Core.Basic.TiObject]]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, SrdRef[Core.Ast.Node]]]
 ) => Bool;
 ```
 
@@ -475,10 +475,10 @@ The next example inserts 10 definitions to variables with type `Int`, its names 
 ```
   def i: Int;
   for i = 0, i < 10, ++i {
-      def counter: TiStr = String.format("%i", i);
+      def counter: Core.Ast.StringLiteral(String.format("%i", i));
       Spp.astMgr.insertAst(
           ast { def n__counter__: Int },
-          Map[String, ref[TiObject]]().set(String("counter"), counter)
+          Map[String, ref[Core.Ast.Node]]().set(String("counter"), counter)
       );
   }
 ```
@@ -487,19 +487,19 @@ The next example inserts 10 definitions to variables with type `Int`, its names 
 
 ```
 handler this.buildAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, ref[Core.Basic.TiObject]]],
-    result: ref[SrdRef[Core.Basic.TiObject]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, ref[Core.Ast.Node]]],
+    result: ref[SrdRef[Core.Ast.Node]]
 ) => Bool;
 handler this.buildAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, SrdRef[Core.Basic.TiObject]]],
-    result: ref[SrdRef[Core.Basic.TiObject]]
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, SrdRef[Core.Ast.Node]]],
+    result: ref[SrdRef[Core.Ast.Node]]
 ) => Bool;
 handler this.buildAst(
-    element: ref[Core.Basic.TiObject],
-    interpolations: ref[Map[String, ref[Core.Basic.TiObject]]]
-): SrdRef[Core.Basic.TiObject];
+    element: ref[Core.Ast.Node],
+    interpolations: ref[Map[String, ref[Core.Ast.Node]]]
+): SrdRef[Core.Ast.Node];
 ```
 
 This function is similar to `insertAst` function, except that it creates ast and returns it to the caller instead of inserting it
@@ -511,11 +511,11 @@ The example creates a definition then use that definition as an interpolation in
 ```
   def i: Int;
   for i = 0, i < 10, ++i {
-      def counter: TiStr = String.format("%i", i);
-      def result: SrdRef[TiObject];
+      def counter: Core.Ast.StringLiteral(String.format("%i", i));
+      def result: SrdRef[Core.Ast.Node];
       Spp.astMgr.buildAst(
           ast { def n__counter__: Int },
-          Map[String, ref[TiObject]]().set(String("counter"), counter),
+          Map[String, ref[Core.Ast.Node]]().set(String("counter"), counter),
           result
       );
       Spp.astMgr.insertAst(
@@ -523,7 +523,7 @@ The example creates a definition then use that definition as an interpolation in
               definition;
               n__counter = 0;
           },
-          Map[String, ref[TiObject]]()
+          Map[String, ref[Core.Ast.Node]]()
               .set(String("counter"), counter)
               .set(String("definition"), result)
       );
@@ -533,7 +533,7 @@ The example creates a definition then use that definition as an interpolation in
 #### insertCopyHandlers
 
 ```
-handler this.insertCopyHandlers(obj: ref[TiObject]);
+handler this.insertCopyHandlers(obj: ref[Core.Ast.Node]);
 
 @member macro insertCopyHandlers [this];
 ```
@@ -545,7 +545,7 @@ type to generate the operations for that typel.
 #### insertMixin
 
 ```
-handler this.insertMixin(obj: ref[TiObject]);
+handler this.insertMixin(obj: ref[Core.Ast.Node]);
 
 @member macro insertMixin [this, target];
 ```
@@ -558,7 +558,7 @@ Visit [mixins](#Mixins) for more info.
 #### getCurrentPreprocessOwner
 
 ```
-handler this.getCurrentPreprocessOwner(): ref[Core.Basic.TiObject];
+handler this.getCurrentPreprocessOwner(): ref[Core.Ast.Node];
 ```
 
 Returns a reference to the AST element that owns the currenly running preprocessing expression.
@@ -575,7 +575,7 @@ calling `insertAst` function.
 #### getVariableDomain
 
 ```
-handler this.getVariableDomain(element: ref[Core.Basic.TiObject]) => Int;
+handler this.getVariableDomain(element: ref[Core.Ast.Node]) => Int;
 ```
 
 Returns a value that show the domain in which the given variable is defined. The result is one of the following values:
@@ -591,7 +591,7 @@ Returns a value that show the domain in which the given variable is defined. The
 #### traceType
 
 ```
-handler this.traceType(element: ref[Core.Basic.TiObject]) => ref[Spp.Ast.Type];
+handler this.traceType(element: ref[Core.Ast.Node]) => ref[Spp.Ast.Type];
 ```
 
 Traces the type that the given SPP element points to, and returns that type.
@@ -601,8 +601,8 @@ Traces the type that the given SPP element points to, and returns that type.
 ```
 handler this.matchTemplateInstance(
     template: ref[Spp.Ast.Template],
-    templateInput: ref[Core.Basic.TiObject],
-    result: ref[SrdRef[Core.Basic.TiObject]]
+    templateInput: ref[Core.Ast.Node],
+    result: ref[SrdRef[Core.Ast.Node]]
 ) => Bool;
 ```
 
@@ -613,8 +613,8 @@ matches the input, then creates a new instance.
 
 ```
 handler this.isCastableTo(
-    srcTypeRef: ref[Core.Basic.TiObject],
-    targetTypeRef: ref[Core.Basic.TiObject],
+    srcTypeRef: ref[Core.Ast.Node],
+    targetTypeRef: ref[Core.Ast.Node],
     implicit: Bool
 ) => Bool;
 ```
@@ -627,8 +627,8 @@ wether to check for implicit casting or explicit casting.
 
 ```
 handler this.computeResultType(
-    element: ref[Core.Basic.TiObject],
-    result: ref[ref[Core.Basic.TiObject]],
+    element: ref[Core.Ast.Node],
+    result: ref[ref[Core.Ast.Node]],
     resultIsValue: ref[Bool]
 ) => Bool;
 ```
@@ -640,22 +640,22 @@ itself (which means it tells you whether the expression is a definition for a cl
 #### cloneAst
 
 ```
-handler this.cloneAst(element: ref[Core.Basic.TiObject]): Srl.SrdRef[Core.Basic.TiObject] {
-    return this.cloneAst(element, nullRef[Core.Basic.TiObject]);
+handler this.cloneAst(element: ref[Core.Ast.Node]): Srl.SrdRef[Core.Ast.Node] {
+    return this.cloneAst(element, nullRef[Core.Ast.Node]);
 }
 handler this.cloneAst(
-    element: ref[Core.Basic.TiObject], sourceLocationNode: ref[Core.Basic.TiObject]
-): Srl.SrdRef[Core.Basic.TiObject];
+    element: ref[Core.Ast.Node], sourceLocationNode: ref[Core.Ast.Node]
+): Srl.SrdRef[Core.Ast.Node];
 ```
 
 This function clonse the given AST.
 
 The second form of this function allows the addition of a position in the source code to the source code positions stack related to the generated tree. The next argument in the next form is not the position in source code that we want to add to the stack, instead it is a the AST element we want to take the position from.
 
-#### dumpData
+#### dumpAst
 
 ```
-handler this.dumpData(obj: ref[Core.Basic.TiObject]);
+handler this.dumpAst(obj: ref[Core.Ast.Node]);
 ```
 
 Prints the given ast to the console in a string format.
@@ -664,7 +664,7 @@ Prints the given ast to the console in a string format.
 
 ```
 handler this.getReferenceTypeFor(
-    astType: ref[Core.Basic.TiObject]
+    astType: ref[Core.Ast.Node]
 ): ref[Spp.Ast.ReferenceType];
 ```
 

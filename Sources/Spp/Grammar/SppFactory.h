@@ -2,7 +2,7 @@
  * @file Spp/SppFactory.h
  * Contains the header of class Spp::SppFactory.
  *
- * @copyright Copyright (C) 2022 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -16,7 +16,7 @@
 namespace Spp::Grammar
 {
 
-class SppFactory : public Core::Data::Grammar::Factory
+class SppFactory : public Core::Grammar::Factory
 {
   //============================================================================
   // Member Variables
@@ -46,8 +46,7 @@ class SppFactory : public Core::Data::Grammar::Factory
   public: void setRootManager(Core::Main::RootManager *root)
   {
     this->rootManager = root;
-    Core::Data::Ast::Scope *rootScope = root->getRootScope().get();
-    this->setRootScope(rootScope);
+    this->setRoot(root->getGrammarRoot().get());
   }
 
   /// Create the entire core grammar.

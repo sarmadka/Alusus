@@ -2,7 +2,7 @@
  * @file Spp/Ast/BreakStatement.h
  * Contains the header of class Spp::Ast::BreakStatement.
  *
- * @copyright Copyright (C) 2021 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -16,17 +16,17 @@
 namespace Spp::Ast
 {
 
-class BreakStatement : public Core::Data::Node,
-                       public Binding, public MapContaining<TiObject>,
-                       public Core::Data::Ast::MetaHaving, public Core::Data::Printable
+class BreakStatement : public Core::Ast::Node,
+                       public Binding, public MapContaining<Core::Ast::Node>,
+                       public Core::Ast::MetaHaving, public Core::Ast::Printable
 {
   //============================================================================
   // Type Info
 
-  TYPE_INFO(BreakStatement, Core::Data::Node, "Spp.Ast", "Spp", "alusus.org");
+  TYPE_INFO(BreakStatement, Core::Ast::Node, "Spp.Ast", "Spp", "alusus.org");
   IMPLEMENT_INTERFACES(
-    Core::Data::Node, Binding, MapContaining<TiObject>,
-    Core::Data::Ast::MetaHaving, Core::Data::Printable
+    Core::Ast::Node, Binding, MapContaining<Core::Ast::Node>,
+    Core::Ast::MetaHaving, Core::Ast::Printable
   );
   OBJECT_FACTORY(BreakStatement);
 
@@ -34,7 +34,7 @@ class BreakStatement : public Core::Data::Node,
   //============================================================================
   // Member Variables
 
-  private: SharedPtr<Core::Data::Ast::IntegerLiteral> steps;
+  private: SharedPtr<Core::Ast::IntegerLiteral> steps;
 
 
   //============================================================================
@@ -44,11 +44,11 @@ class BreakStatement : public Core::Data::Node,
 
   IMPLEMENT_BINDING(Binding,
     (prodId, TiWord, VALUE, setProdId(value), &prodId),
-    (sourceLocation, Core::Data::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get())
+    (sourceLocation, Core::Ast::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get())
   );
 
-  IMPLEMENT_MAP_CONTAINING(MapContaining<TiObject>,
-    (steps, Core::Data::Ast::IntegerLiteral, SHARED_REF, setSteps(value), steps.get())
+  IMPLEMENT_MAP_CONTAINING(MapContaining<Core::Ast::Node>,
+    (steps, Core::Ast::IntegerLiteral, SHARED_REF, setSteps(value), steps.get())
   );
 
   IMPLEMENT_AST_MAP_PRINTABLE(BreakStatement);
@@ -72,16 +72,16 @@ class BreakStatement : public Core::Data::Node,
   //============================================================================
   // Member Functions
 
-  public: void setSteps(SharedPtr<Core::Data::Ast::IntegerLiteral> const &s)
+  public: void setSteps(SharedPtr<Core::Ast::IntegerLiteral> const &s)
   {
     UPDATE_OWNED_SHAREDPTR(this->steps, s);
   }
-  private: void setSteps(Core::Data::Ast::IntegerLiteral *s)
+  private: void setSteps(Core::Ast::IntegerLiteral *s)
   {
     this->setSteps(getSharedPtr(s));
   }
 
-  public: SharedPtr<Core::Data::Ast::IntegerLiteral> const& getSteps() const
+  public: SharedPtr<Core::Ast::IntegerLiteral> const& getSteps() const
   {
     return this->steps;
   }

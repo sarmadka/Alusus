@@ -2,7 +2,7 @@
  * @file Core/Processing/Handlers/GenericParsingHandler.h
  * Contains the header of class Core::Processing::Handlers::GenericParsingHandler.
  *
- * @copyright Copyright (C) 2021 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -86,7 +86,7 @@ class GenericParsingHandler : public ParsingHandler
    * @sa ParsingHandler::onLevelExit()
    */
   public: virtual void onLevelExit(Parser *parser, ParserState *state,
-                                   SharedPtr<TiObject> const &data);
+                                   SharedPtr<Ast::Node> const &data);
 
   /**
    * @brief Called when a new successful token is received.
@@ -97,7 +97,7 @@ class GenericParsingHandler : public ParsingHandler
    * @sa ParsingHandler::onNewToken()
    */
   public: virtual void onNewToken(Parser *parser, ParserState *state,
-                                  Data::Token const *token);
+                                  Ast::Token const *token);
 
   /**
    * @brief Called when a step is to be made on a concat term.
@@ -108,7 +108,7 @@ class GenericParsingHandler : public ParsingHandler
    * @sa ParsingHandler::onConcatStep()
    */
   public: virtual void onConcatStep(Parser *parser, ParserState *state,
-                                    Int newPos, Data::Token const *token);
+                                    Int newPos, Ast::Token const *token);
 
   /**
    * @brief Called when a route decision is made on an alternative term.
@@ -118,7 +118,7 @@ class GenericParsingHandler : public ParsingHandler
    * @sa ParsingHandler::onAlternateRouteDecision()
    */
   public: virtual void onAlternateRouteDecision(Parser *parser, ParserState *state,
-                                                Int route, Data::Token const *token);
+                                                Int route, Ast::Token const *token);
 
   /**
    * @brief Called when a route decision is made on a duplicate term.
@@ -134,7 +134,7 @@ class GenericParsingHandler : public ParsingHandler
    * @sa ParsingHandler::onMultiplyRouteDecision()
    */
   public: virtual void onMultiplyRouteDecision(Parser *parser, ParserState *state,
-                                               Int route, Data::Token const *token);
+                                               Int route, Ast::Token const *token);
 
   /**
    * @brief Wipe out any generated data from the canceled top level.
@@ -157,7 +157,7 @@ class GenericParsingHandler : public ParsingHandler
   /// @{
 
   /// Add the given data to the given state level.
-  protected: virtual void addData(SharedPtr<TiObject> const &data, Parser *parser, ParserState *state, Int levelIndex);
+  protected: virtual void addData(SharedPtr<Ast::Node> const &data, Parser *parser, ParserState *state, Int levelIndex);
 
   protected: virtual Bool isListObjEnforced(ParserState *state, Int levelIndex);
   protected: virtual Bool isListItemEnforced(ParserState *state, Int levelIndex);
@@ -165,11 +165,11 @@ class GenericParsingHandler : public ParsingHandler
   protected: virtual Bool isPassUpList(ParserState *state, Int levelIndex);
   protected: virtual Bool isProdObjEnforced(ParserState *state);
 
-  protected: virtual SharedPtr<TiObject> createListNode(ParserState *state, Int levelIndex);
-  protected: virtual SharedPtr<TiObject> createRouteNode(ParserState *state, Int levelIndex, Int route);
-  protected: virtual SharedPtr<TiObject> createTokenNode(ParserState *state, Int levelIndex,
+  protected: virtual SharedPtr<Ast::Node> createListNode(ParserState *state, Int levelIndex);
+  protected: virtual SharedPtr<Ast::Node> createRouteNode(ParserState *state, Int levelIndex, Int route);
+  protected: virtual SharedPtr<Ast::Node> createTokenNode(ParserState *state, Int levelIndex,
                                                          Word tokenId, Char const *tokenText);
-  protected: virtual SharedPtr<TiObject> createEnforcedProdNode(ParserState *state);
+  protected: virtual SharedPtr<Ast::Node> createEnforcedProdNode(ParserState *state);
 
   protected: Bool isRouteTerm(ParserState *state, Int levelIndex);
   protected: Bool isListTerm(ParserState *state, Int levelIndex);

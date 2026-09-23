@@ -38,7 +38,7 @@ if Srl.String.compare(Process.language, "ar") == 0 {
     }
 
     class Unit {
-        def element: ref[TiObject];
+        def element: ref[Core.Ast.Node];
         def outputFilename: String;
         def outputPath: String;
         def deps: Array[String];
@@ -46,7 +46,7 @@ if Srl.String.compare(Process.language, "ar") == 0 {
 
         handler this~init() {}
 
-        handler this~init(e: ref[TiObject], fn: CharsPtr) {
+        handler this~init(e: ref[Core.Ast.Node], fn: CharsPtr) {
             this.element~no_deref = e;
             this.addDependency(e);
             this.outputFilename = fn;
@@ -70,14 +70,14 @@ if Srl.String.compare(Process.language, "ar") == 0 {
             while count-- > 0 this.deps.add(args~next_arg[String]);
         }
 
-        handler this.addDependency (e: ref[TiObject]) => Bool {
+        handler this.addDependency (e: ref[Core.Ast.Node]) => Bool {
             if !this.addDependenciesFromModifier(e, "deps") return false;
             if !this.addDependenciesFromModifier(e, "اعتماديات") return false;
             return true;
         }
 
-        handler this.addDependenciesFromModifier (e: ref[TiObject], modifierKwd: CharsPtr) => Bool {
-            def modifier: ref[TiObject](Spp.astMgr.findModifierForElement(e, modifierKwd));
+        handler this.addDependenciesFromModifier (e: ref[Core.Ast.Node], modifierKwd: CharsPtr) => Bool {
+            def modifier: ref[Core.Ast.Node](Spp.astMgr.findModifierForElement(e, modifierKwd));
             if modifier~ptr != 0 {
                 def deps: Array[String];
                 if !Spp.astMgr.getModifierStringParams(modifier, deps) return false;
@@ -101,7 +101,7 @@ if Srl.String.compare(Process.language, "ar") == 0 {
         def targetTriple: CharsPtr(0);
         def linkerFilename: CharsPtr(0);
 
-        handler this~init(e: ref[TiObject], fn: CharsPtr) {
+        handler this~init(e: ref[Core.Ast.Node], fn: CharsPtr) {
             this.unit~init(e, fn);
         }
 
@@ -173,7 +173,7 @@ if Srl.String.compare(Process.language, "ar") == 0 {
     class Wasm {
         @injection def unit: Unit;
 
-        handler this~init(e: ref[TiObject], fn: CharsPtr) {
+        handler this~init(e: ref[Core.Ast.Node], fn: CharsPtr) {
             this.unit~init(e, fn);
         }
 
@@ -206,13 +206,13 @@ if Srl.String.compare(Process.language, "ar") == 0 {
         }
     }
 
-    function genExecutable (element: ref[TiObject], outputFilename: CharsPtr) => Bool
+    function genExecutable (element: ref[Core.Ast.Node], outputFilename: CharsPtr) => Bool
     {
         def exe: Exe(element, outputFilename);
         return exe.generate();
     }
 
-    function genWasm (element: ref[TiObject], outputFilename: CharsPtr) => Bool
+    function genWasm (element: ref[Core.Ast.Node], outputFilename: CharsPtr) => Bool
     {
         def wasm: Wasm(element, outputFilename);
         return wasm.generate();

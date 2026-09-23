@@ -1872,8 +1872,8 @@ The following example explains how to create a group of assignment statements fo
       for i = 0, i &lt; vars.getLength(), ++i {
           Spp.astMgr.insertAst(
               ast { this.name = 0 },
-              Map[String, ref[Core.Basic.TiObject]]()
-                  .set(String("name"), Core.Basic.TiStr(vars(i)))
+              Map[String, ref[Core.Ast.Node]]()
+                  .set(String("name"), Core.Ast.StringLiteral(vars(i)))
           );
       }
   }

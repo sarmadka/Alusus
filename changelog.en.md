@@ -1,5 +1,15 @@
 # Alusus Changelog
 
+## Version 0.16.0 (2026-10-xx)
+
+* Refactored the Core to clean up data class hierarchies:
+  - Moved `Core::Data::Ast` to `Core::Ast`.
+  - Moved `Core::Data::Grammar` to `Core::Grammar`.
+  - Removed the `Core::Data` namespace.
+  - Inherited all AST node classes from `Core::Ast::Node`.
+  - Inherited all grammar node classes from `Core::Grammar::Node`.
+
+
 ## Version 0.15.3 (2026-08-28)
 
 * Add new helper macros to Srl:

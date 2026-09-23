@@ -2,7 +2,7 @@
  * @file Spp/Ast/ThisTypeRef.h
  * Contains the header of class Spp::Ast::ThisTypeRef.
  *
- * @copyright Copyright (C) 2021 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -16,15 +16,15 @@
 namespace Spp::Ast
 {
 
-class ThisTypeRef : public Core::Data::Node,
-                    public Binding, public Core::Data::Ast::MetaHaving, public Core::Data::Printable
+class ThisTypeRef : public Core::Ast::Node,
+                    public Binding, public Core::Ast::MetaHaving, public Core::Ast::Printable
 {
   //============================================================================
   // Type Info
 
-  TYPE_INFO(ThisTypeRef, Core::Data::Node, "Spp.Ast", "Spp", "alusus.org");
+  TYPE_INFO(ThisTypeRef, Core::Ast::Node, "Spp.Ast", "Spp", "alusus.org");
   IMPLEMENT_INTERFACES(
-    Core::Data::Node, Binding, Core::Data::Ast::MetaHaving, Core::Data::Printable
+    Core::Ast::Node, Binding, Core::Ast::MetaHaving, Core::Ast::Printable
   );
   OBJECT_FACTORY(ThisTypeRef);
 
@@ -36,7 +36,7 @@ class ThisTypeRef : public Core::Data::Node,
 
   IMPLEMENT_BINDING(Binding,
     (prodId, TiWord, VALUE, setProdId(value), &prodId),
-    (sourceLocation, Core::Data::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get())
+    (sourceLocation, Core::Ast::SourceLocation, SHARED_REF, setSourceLocation(value), sourceLocation.get())
   );
 
 

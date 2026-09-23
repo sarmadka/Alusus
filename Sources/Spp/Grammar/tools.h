@@ -2,7 +2,7 @@
  * @file Spp/Grammar/tools.h
  * Contains declarations of grammar utility functions.
  *
- * @copyright Copyright (C) 2022 Sarmad Khalid Abdullah
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
  *
  * @license This file is released under Alusus Public License, Version 1.0.
  * For details on usage and copying conditions read the full license in the
@@ -18,17 +18,17 @@ namespace Spp::Grammar
 
 /// @ingroup spp_ast
 Bool parseCommandSection(
-  TiObject *ast, Core::Data::Grammar::CommandSection &section, Core::Notices::Store *noticeStore
+  TiObject *ast, Core::Grammar::CommandSection &section, Core::Notices::Store *noticeStore
 );
 
 /// @ingroup spp_ast
 Bool parseCommandKeywords(
-  TiObject *ast, SharedPtr<Core::Data::Grammar::Map> &keywords, Core::Notices::Store *noticeStore
+  TiObject *ast, SharedPtr<Core::Grammar::Map> &keywords, Core::Notices::Store *noticeStore
 );
 
 /// @ingroup spp_ast
 Bool parseCommandArg(
-  TiObject *ast, Core::Data::Grammar::CommandArg &arg, Core::Notices::Store *noticeStore
+  TiObject *ast, Core::Grammar::CommandArg &arg, Core::Notices::Store *noticeStore
 );
 
 /// @ingroup spp_ast

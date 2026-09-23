@@ -1,0 +1,150 @@
+/**
+ * @file Core/Ast.alusus
+ * Interoperability definitions for the Core's AST classes.
+ *
+ * @copyright Copyright (C) 2026 Sarmad Khalid Abdullah
+ *
+ * @license This file is released under Alusus Public License, Version 1.0.
+ * For details on usage and copying conditions read the full license in the
+ * accompanying license file or at <https://alusus.org/license.html>.
+ */
+//==============================================================================
+
+import "Basic";
+import "Spp";
+import "Srl/Map";
+import "Srl/String";
+
+@merge module Core {
+    module Ast {
+        use Basic;
+        class Node {
+            @injection def tiObject: TiObject;
+            def owner: ref[Node];
+
+            handler this.isOwnedBy(obj: ref[TiObject]): Bool {
+                def o: ref[Node](this.owner);
+                while o~ptr != 0 && o~ptr != obj~ptr { o~no_deref = o.owner };
+                return o~ptr == obj~ptr;
+            }
+
+            defTypeInfoGetter["alusus.org/Core/Core.Ast.Node"];
+        }
+
+        // Insert an array of bytes equal to the remaining required size to be padded at the end of a
+        // class defined on Alusus side to match the size of the corresponding C++ class. The padding
+        // is needed because on Alusus side we don't always define every single member that exists on
+        // the C++ side.
+        func insertClassPadding (defiendSize: ArchInt, classUniqueName: CharsPtr) {
+            use Srl;
+            // Abstract classes have no object factory, in which case we can't know the size of the C++ class,
+            // but we also don't need the padding since no object of this class is ever created.
+            def classFactory: ref[TiObjectFactory](
+                getFromGlobalStorage(classUniqueName)~cast[ptr[TypeInfo]]~cnt.objectFactory
+            );
+            if classFactory~ptr == 0 return;
+            def totalSize: ArchInt = classFactory.getSize();
+            def paddingSize: ArchInt = totalSize - defiendSize;
+            // Creates an integer literal through the object factory rather than through the IntegerLiteral class
+            // itself. This is necessary because this funciton is needed to preprocess the IntegerLiteral class
+            // itself.
+            def factory: ref[TiObjectFactory](
+                getFromGlobalStorage("alusus.org/Core/Core.Ast.IntegerLiteral")
+                    ~cast[ptr[TypeInfo]]~cnt.objectFactory
+            );
+            def literal: SrdRef[TiObject] = factory.createShared();
+            BindingOf[literal.obj].setMember("value", TiStr(String() + paddingSize));
+            Spp.astMgr.insertAst(
+                ast { def _data: array[Word[8], size] },
+                Map[String, ref[Core.Ast.Node]]().set(String("size"), castRef[literal.obj, Node])
+            );
+        }
+
+        macro defTextAstType [name, uniqueName] {
+            class name {
+                @injection def node: Node;
+                def binding: TiInterface;
+                def metaHaving: TiInterface;
+                def printable: TiInterface;
+                def value: TiStr;
+
+                preprocess {
+                    insertClassPadding(Node~size + 3*TiInterface~size + TiStr~size, uniqueName);
+                }
+
+                handler this~init() {
+                    getTypeInfo().objectFactory.initialize(this);
+                }
+                handler this~init(v: ptr[array[Char]]) {
+                    getTypeInfo().objectFactory.initialize(this);
+                    this.value = v;
+                }
+                handler this~terminate() {
+                    getTypeInfo().objectFactory.terminate(this);
+                    // We need to re-initialize value to avoid segfault caused by double termination of value when
+                    // Alusus auto-destructor tries to destroy value which was already destroyed by the object
+                    // factory.
+                    this.value~init();
+                }
+
+                func create (v: ptr[array[Char]]): SrdRef[name] {
+                    def r: SrdRef[name];
+                    r.alloc()~init(v);
+                    r.wkThis.assign(r.refCounter, r.tiObject);
+                    return r;
+                }
+
+                defTypeInfoGetter[uniqueName];
+            }
+        }
+
+        defTextAstType[Identifier, "alusus.org/Core/Core.Ast.Identifier"];
+        defTextAstType[IntegerLiteral, "alusus.org/Core/Core.Ast.IntegerLiteral"];
+        defTextAstType[FloatLiteral, "alusus.org/Core/Core.Ast.FloatLiteral"];
+        defTextAstType[CharLiteral, "alusus.org/Core/Core.Ast.CharLiteral"];
+        defTextAstType[StringLiteral, "alusus.org/Core/Core.Ast.StringLiteral"];
+
+        macro defAstType[name, uniqueName] {
+            class name {
+                @injection def node: Core.Ast.Node;
+
+                preprocess {
+                    Core.Ast.insertClassPadding(Core.Ast.Node~size, uniqueName);
+                }
+
+                handler this~init() {
+                    getTypeInfo().objectFactory.initialize(this);
+                }
+                handler this~terminate() {
+                    getTypeInfo().objectFactory.terminate(this);
+                }
+
+                Core.Basic.defTypeInfoGetter[uniqueName];
+            }
+        }
+
+        defAstType[Alias, "alusus.org/Core/Core.Ast.Alias"];
+        defAstType[Bracket, "alusus.org/Core/Core.Ast.Bracket"];
+        defAstType[Bridge, "alusus.org/Core/Core.Ast.Bridge"];
+        defAstType[Definition, "alusus.org/Core/Core.Ast.Definition"];
+        defAstType[GenericCommand, "alusus.org/Core/Core.Ast.GenericCommand"];
+        defAstType[List, "alusus.org/Core/Core.Ast.List"];
+        defAstType[Map, "alusus.org/Core/Core.Ast.Map"];
+        defAstType[MergeList, "alusus.org/Core/Core.Ast.MergeList"];
+        defAstType[ParamPass, "alusus.org/Core/Core.Ast.ParamPass"];
+        defAstType[Scope, "alusus.org/Core/Core.Ast.Scope"];
+        defAstType[Token, "alusus.org/Core/Core.Ast.Token"];
+        defAstType[PrefixOperator, "alusus.org/Core/Core.Ast.PrefixOperator"];
+        defAstType[PostfixOperator, "alusus.org/Core/Core.Ast.PostfixOperator"];
+        defAstType[AssignmentOperator, "alusus.org/Core/Core.Ast.AssignmentOperator"];
+        defAstType[ComparisonOperator, "alusus.org/Core/Core.Ast.ComparisonOperator"];
+        defAstType[AdditionOperator, "alusus.org/Core/Core.Ast.AdditionOperator"];
+        defAstType[MultiplicationOperator, "alusus.org/Core/Core.Ast.MultiplicationOperator"];
+        defAstType[BitwiseOperator, "alusus.org/Core/Core.Ast.BitwiseOperator"];
+        defAstType[LogOperator, "alusus.org/Core/Core.Ast.LogOperator"];
+        defAstType[LinkOperator, "alusus.org/Core/Core.Ast.LinkOperator"];
+        defAstType[ConditionalOperator, "alusus.org/Core/Core.Ast.ConditionalOperator"];
+        defAstType[Passage, "alusus.org/Core/Core.Ast.Passage"];
+        addExtraBindingInitializer[Passage, "target", ref[TiObject]];
+    }
+}
