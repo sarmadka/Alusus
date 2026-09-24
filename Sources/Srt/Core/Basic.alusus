@@ -132,6 +132,10 @@ import "Srl/String";
                 }
                 handler this~terminate() {
                     getTypeInfo().objectFactory.terminate(this);
+                    // We need to re-initialize value to avoid memory corruption caused by double termination of
+                    // value when Alusus auto-destructor tries to destroy value which was already destroyed by
+                    // the object factory.
+                    this.value~init();
                 }
                 handler this=dataType this.value~no_deref = value;
 
