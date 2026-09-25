@@ -8,6 +8,7 @@
   - Removed the `Core::Data` namespace.
   - Inherited all AST node classes from `Core::Ast::Node`.
   - Inherited all grammar node classes from `Core::Grammar::Node`.
+* Apply O3 optimization on offline builds generated using the Build library.
 
 
 ## Version 0.15.3 (2026-08-28)
