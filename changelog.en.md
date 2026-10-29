@@ -20,6 +20,8 @@
     call the function they override through `callSuper`.
 * Fixed a bug where replacing an element at the end of a scope with a `use` statement or an injection, for
   example during preprocessing, caused the new element to be ignored.
+* The `~size` operator now always returns an `ArchWord` instead of the smallest signed integer type that can
+  hold the size.
 
 
 ## Version 0.16.0 (2026-10-09)

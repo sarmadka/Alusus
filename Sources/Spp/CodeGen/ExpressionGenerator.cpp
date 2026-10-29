@@ -136,6 +136,7 @@ Bool ExpressionGenerator::_generate(
   GenResult &result, TerminalStatement &terminal
 ) {
   PREPARE_SELF(expGenerator, ExpressionGenerator);
+  ASSERT(session->isAstComputationOnly() || session->getTgContext() != 0);
   terminal = TerminalStatement::NO;
   if (astNode->isDerivedFrom<Core::Ast::List>()) {
     auto expList = static_cast<Core::Ast::List*>(astNode);
@@ -397,7 +398,7 @@ Bool ExpressionGenerator::_generateRoundParamPassOnCallee(
   } else if (callee.astNode != 0 && callee.astNode->isDerivedFrom<Ast::Type>()) {
     // Generate temp variable.
     Ast::Type *astType;
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       TiObject *tgType;
       if (!g->getGeneratedType(callee.astNode, session, tgType, &astType)) return false;
       TioSharedPtr tgTempVar;
@@ -445,7 +446,10 @@ Bool ExpressionGenerator::_generateRoundParamPassOnCallee(
       if (!expGenerator->dereferenceIfNeeded(
         callee.astType, callee.targetData.get(), true, false, session, derefCallee
       )) return false;
-      TiObject *tgFuncPtrType = session->getEda()->getCodeGenData<TiObject>(derefCallee.astType);
+      TiObject *tgFuncPtrType = 0;
+      if (!session->isAstComputationOnly()) {
+        tgFuncPtrType = session->getEda()->getCodeGenData<TiObject>(derefCallee.astType);
+      }
       // Generate the call.
       return expGenerator->generateFunctionPtrCall(
         astNode, astFuncType, derefCallee.targetData.get(), tgFuncPtrType, paramTgValues, g, session, result
@@ -662,7 +666,7 @@ Bool ExpressionGenerator::_generateLogicalOp(
 
   // Prepare the operator.
   TioSharedPtr secondContext;
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->prepareLogicalOp(session->getTgContext(), secondContext)) return false;
   }
 
@@ -712,7 +716,7 @@ Bool ExpressionGenerator::_generateLogicalOp(
 
   // Finalize the operator.
   if (astNode->getType() == S("||") || astNode->getType() == S("or")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->finishLogicalOr(
         session->getTgContext(), secondContext.get(), firstCastedResult.get(), secondCastedResult.get(), result.targetData
       )) return false;
@@ -720,7 +724,7 @@ Bool ExpressionGenerator::_generateLogicalOp(
     result.astType = expGenerator->astHelper->getBoolType();
     return true;
   } else if (astNode->getType() == S("&&") || astNode->getType() == S("and")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->finishLogicalAnd(
         session->getTgContext(), secondContext.get(), firstCastedResult.get(), secondCastedResult.get(), result.targetData
       )) return false;
@@ -807,7 +811,7 @@ Bool ExpressionGenerator::_generateArithmeticOp(
     return false;
   }
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateCast(
       session, param1.astType, astTargetType, astNode, param1.targetData.get(), false, param1
     )) {
@@ -826,7 +830,7 @@ Bool ExpressionGenerator::_generateArithmeticOp(
   }
 
   if (*astNode->getType().get() == C('+')) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateAdd(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -834,7 +838,7 @@ Bool ExpressionGenerator::_generateArithmeticOp(
     result.astType = astTargetType;
     return true;
   } else if (*astNode->getType().get() == C('-')) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateSub(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -842,7 +846,7 @@ Bool ExpressionGenerator::_generateArithmeticOp(
     result.astType = astTargetType;
     return true;
   } else if (*astNode->getType().get() == S('*')) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateMul(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -850,7 +854,7 @@ Bool ExpressionGenerator::_generateArithmeticOp(
     result.astType = astTargetType;
     return true;
   } else if (*astNode->getType().get() == S('/')) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateDiv(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -858,7 +862,7 @@ Bool ExpressionGenerator::_generateArithmeticOp(
     result.astType = astTargetType;
     return true;
   } else if (*astNode->getType().get() == S('%')) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateRem(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -918,7 +922,7 @@ Bool ExpressionGenerator::_generateBinaryOp(
     return false;
   }
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateCast(
       session, param1.astType, astTargetType, astNode, param1.targetData.get(), false, param1
     )) {
@@ -937,7 +941,7 @@ Bool ExpressionGenerator::_generateBinaryOp(
   }
 
   if (astNode->getType() == S(">>")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateShr(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -945,7 +949,7 @@ Bool ExpressionGenerator::_generateBinaryOp(
     result.astType = astTargetType;
     return true;
   } else if (astNode->getType() == S("<<")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateShl(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -953,7 +957,7 @@ Bool ExpressionGenerator::_generateBinaryOp(
     result.astType = astTargetType;
     return true;
   } else if (astNode->getType() == S("&")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateAnd(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -961,7 +965,7 @@ Bool ExpressionGenerator::_generateBinaryOp(
     result.astType = astTargetType;
     return true;
   } else if (astNode->getType() == S("|")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateOr(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -969,7 +973,7 @@ Bool ExpressionGenerator::_generateBinaryOp(
     result.astType = astTargetType;
     return true;
   } else if (astNode->getType() == S("$")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateXor(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1073,7 +1077,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
     return false;
   }
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateCast(
       session, param1.astType, astTargetType, astNode, param1.targetData.get(), false, param1
     )) {
@@ -1092,7 +1096,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
   }
 
   if (astNode->getType() == S("==")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateEqual(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1100,7 +1104,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
     result.astType = expGenerator->astHelper->getBoolType();
     return true;
   } else if (astNode->getType() == S("!=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateNotEqual(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1108,7 +1112,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
     result.astType = expGenerator->astHelper->getBoolType();
     return true;
   } else if (astNode->getType() == S(">")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateGreaterThan(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1116,7 +1120,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
     result.astType = expGenerator->astHelper->getBoolType();
     return true;
   } else if (astNode->getType() == S(">=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateGreaterThanOrEqual(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1124,7 +1128,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
     result.astType = expGenerator->astHelper->getBoolType();
     return true;
   } else if (astNode->getType() == S("<")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateLessThan(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1132,7 +1136,7 @@ Bool ExpressionGenerator::_generateComparisonOp(
     result.astType = expGenerator->astHelper->getBoolType();
     return true;
   } else if (astNode->getType() == S("<=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateLessThanOrEqual(
         session->getTgContext(), tgTargetType, param1.targetData.get(), param2.targetData.get(), result.targetData
       )) return false;
@@ -1183,7 +1187,7 @@ Bool ExpressionGenerator::_generateAssignOp(
   auto paramAstType = static_cast<Ast::Type*>(paramAstTypes->get(1));
   GenResult paramCastResult;
   Bool retVal;
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     retVal = g->generateCast(
       session, paramAstType, astContentType, astNode, paramTgValues->getElement(1), true, paramCastResult
     );
@@ -1201,7 +1205,7 @@ Bool ExpressionGenerator::_generateAssignOp(
     astNode->getType() == S("=") ||
     (astNode->getType().getStr().getLength() > 1 && astNode->getType().get()[1] == C('='))
   ) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       TiObject *tgContentType;
       if (!g->getGeneratedType(paramCastResult.astType, session, tgContentType, 0)) {
         throw EXCEPTION(GenericException, S("Unexpected error while generating arithmetic op result target type."));
@@ -1284,7 +1288,7 @@ Bool ExpressionGenerator::_generateBinaryAssignOp(
     return false;
   }
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateCast(
       session, param.astType, astContentType, astNode, param.targetData.get(), false, param
     )) {
@@ -1298,7 +1302,7 @@ Bool ExpressionGenerator::_generateBinaryAssignOp(
   }
 
   if (astNode->getType() == S(">>=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateShrAssign(
         session->getTgContext(), tgContentType, target.targetData.get(), param.targetData.get(), result.targetData
       )) return false;
@@ -1306,7 +1310,7 @@ Bool ExpressionGenerator::_generateBinaryAssignOp(
     result.astType = astRefType;
     return true;
   } else if (astNode->getType() == S("<<=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateShlAssign(
         session->getTgContext(), tgContentType, target.targetData.get(), param.targetData.get(), result.targetData
       )) return false;
@@ -1314,7 +1318,7 @@ Bool ExpressionGenerator::_generateBinaryAssignOp(
     result.astType = astRefType;
     return true;
   } else if (astNode->getType() == S("&=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateAndAssign(
         session->getTgContext(), tgContentType, target.targetData.get(), param.targetData.get(), result.targetData
       )) return false;
@@ -1322,7 +1326,7 @@ Bool ExpressionGenerator::_generateBinaryAssignOp(
     result.astType = astRefType;
     return true;
   } else if (astNode->getType() == S("|=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateOrAssign(
         session->getTgContext(), tgContentType, target.targetData.get(), param.targetData.get(), result.targetData
       )) return false;
@@ -1330,7 +1334,7 @@ Bool ExpressionGenerator::_generateBinaryAssignOp(
     result.astType = astRefType;
     return true;
   } else if (astNode->getType() == S("$=")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateXorAssign(
         session->getTgContext(), tgContentType, target.targetData.get(), param.targetData.get(), result.targetData
       )) return false;
@@ -1381,7 +1385,7 @@ Bool ExpressionGenerator::_generateUnaryValOp(
     return false;
   }
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateCast(
       session, param.astType, astTargetType, astNode, param.targetData.get(), false, param
     )) {
@@ -1395,7 +1399,7 @@ Bool ExpressionGenerator::_generateUnaryValOp(
   }
 
   if (astNode->getType() == S("-")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateNeg(
         session->getTgContext(), tgTargetType, param.targetData.get(), result.targetData
       )) return false;
@@ -1446,7 +1450,7 @@ Bool ExpressionGenerator::_generateIntUnaryValOp(
       return false;
     }
 
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!g->generateCast(
         session, param.astType, astTargetType, astNode, param.targetData.get(), false, param
       )) {
@@ -1461,7 +1465,7 @@ Bool ExpressionGenerator::_generateIntUnaryValOp(
   }
 
   if (astNode->getType() == S("!") || astNode->getType() == S("!!") || astNode->getType() == S("not")) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateNot(
         session->getTgContext(), tgTargetType, param.targetData.get(), result.targetData
       )) return false;
@@ -1514,7 +1518,7 @@ Bool ExpressionGenerator::_generateUnaryVarOp(
 
   if (astNode->isDerivedFrom<Core::Ast::PrefixOperator>()) {
     if (astNode->getType() == S("--")) {
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         if (!session->getTg()->generateEarlyDec(
           session->getTgContext(), tgContentType, target.targetData.get(), result.targetData
         )) return false;
@@ -1522,7 +1526,7 @@ Bool ExpressionGenerator::_generateUnaryVarOp(
       result.astType = astContentType;
       return true;
     } else if (astNode->getType() == S("++")) {
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         if (!session->getTg()->generateEarlyInc(
           session->getTgContext(), tgContentType, target.targetData.get(), result.targetData
         )) return false;
@@ -1534,7 +1538,7 @@ Bool ExpressionGenerator::_generateUnaryVarOp(
     }
   } else {
     if (astNode->getType() == S("--")) {
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         if (!session->getTg()->generateLateDec(
           session->getTgContext(), tgContentType, target.targetData.get(), result.targetData
         )) return false;
@@ -1542,7 +1546,7 @@ Bool ExpressionGenerator::_generateUnaryVarOp(
       result.astType = astContentType;
       return true;
     } else if (astNode->getType() == S("++")) {
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         if (!session->getTg()->generateLateInc(
           session->getTgContext(), tgContentType, target.targetData.get(), result.targetData
         )) return false;
@@ -1596,13 +1600,14 @@ Bool ExpressionGenerator::_generatePointerOp(
       return false;
     }
 
-    auto tgFunction = session->getEda()->getCodeGenData<TiObject>(astFunction);
+    TiObject *tgFunction = 0;
+    if (!session->isAstComputationOnly()) tgFunction = session->getEda()->getCodeGenData<TiObject>(astFunction);
     auto astFunctionPointerType = expGenerator->astHelper->getPointerTypeFor(astFunction->getType().get());
     TiObject *tgFunctionPointerType;
     if (!g->getGeneratedType(astFunctionPointerType, session, tgFunctionPointerType, 0)) {
       throw EXCEPTION(GenericException, S("Failed to generate function pointer type."));
     }
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateFunctionPointer(
         session->getTgContext(), tgFunction, tgFunctionPointerType, result.targetData
       )) return false;
@@ -1668,9 +1673,11 @@ Bool ExpressionGenerator::_generateAstRefOp(
   // Capture the element in the repo so that it doesn't get freed while still needed by the generated code.
   expGenerator->astNodeRepo->addElement(targetAstNode);
   // Generate a pointer literal.
-  if (!session->getTg()->generatePointerLiteral(
-    session->getTgContext(), tgTiObjRefType, targetAstNode, result.targetData
-  )) return false;
+  if (!session->isAstComputationOnly()) {
+    if (!session->getTg()->generatePointerLiteral(
+      session->getTgContext(), tgTiObjRefType, targetAstNode, result.targetData
+    )) return false;
+  }
   result.astType = tiObjRefType;
   return true;
 }
@@ -1702,10 +1709,12 @@ Bool ExpressionGenerator::_generateAstLiteralCommand(
   // Capture the body in the repo so that it doesn't get freed while still needed by the generated code.
   expGenerator->astNodeRepo->add(body);
   // Generate a pointer literal.
-  if (!session->getTg()->generatePointerLiteral(
-    session->getTgContext(), tgTiObjRefType, body.get(), result.targetData
-  )) {
-    return false;
+  if (!session->isAstComputationOnly()) {
+    if (!session->getTg()->generatePointerLiteral(
+      session->getTgContext(), tgTiObjRefType, body.get(), result.targetData
+    )) {
+      return false;
+    }
   }
   result.astType = tiObjRefType;
   return true;
@@ -1907,7 +1916,7 @@ Bool ExpressionGenerator::_generateCastOp(
 
   // Cast the value.
   Bool retVal;
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     retVal = g->generateCast(
       session, derefResult.astType, targetAstType, astNode, derefResult.targetData.get(), false, result
     );
@@ -1940,6 +1949,7 @@ Bool ExpressionGenerator::_generateSizeOp(
   TerminalStatement terminal;
   GenResult operandResult;
   Session childSession(session, 0, 0);
+  childSession.setAstComputationOnly(true);
   if (!expGenerator->generate(operand, g, &childSession, operandResult, terminal)) return false;
   if (terminal == TerminalStatement::YES) {
     expGenerator->astHelper->getNoticeStore()->add(
@@ -1971,17 +1981,12 @@ Bool ExpressionGenerator::_generateSizeOp(
   // Dereference if needed.
   astType = expGenerator->astHelper->tryGetDeepReferenceContentType(astType);
 
-  // Get the allocation size.
-  Word size;
-  if (!g->getTypeAllocationSize(astType, session, size)) return false;
-
-  // Generate the Word64 type needed for the result.
-  auto bitCount = expGenerator->astHelper->getNeededIntSize(size);
-  if (bitCount < 8) bitCount = 8;
-  auto astWordType = expGenerator->astHelper->getIntType(bitCount);
-
-  // Generate a constant with that size.
-  if (session->getTgContext() != 0) {
+  // The result is always an ArchWord, so the size itself is only needed when generating the value.
+  auto astWordType = expGenerator->astHelper->getWordType(0);
+  if (!session->isAstComputationOnly()) {
+    Word size;
+    if (!g->getTypeAllocationSize(astType, session, size)) return false;
+    auto bitCount = astWordType->getBitCount(expGenerator->astHelper);
     if (!session->getTg()->generateIntLiteral(session->getTgContext(), bitCount, false, size, result.targetData)) {
       return false;
     }
@@ -2040,7 +2045,7 @@ Bool ExpressionGenerator::_generateInitOp(
     return false;
   }
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateVarInitialization(
       astContentType, target.targetData.get(), astNode, &paramAstNodes, &paramAstTypes, &paramTgValues, session
     )) return false;
@@ -2090,7 +2095,7 @@ Bool ExpressionGenerator::_generateTerminateOp(
   }
   Ast::Type *astContentType = astRefType->getContentType(expGenerator->astHelper);
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateVarDestruction(astContentType, target.targetData.get(), astNode, session)) return false;
   }
   result = target;
@@ -2147,7 +2152,7 @@ Bool ExpressionGenerator::_generateNextArgOp(
 
   // Get the next arg.
   Bool retVal;
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     retVal = session->getTg()->generateNextArg(
       session->getTgContext(), targetTgType, derefResult.targetData.get(), result.targetData
     );
@@ -2196,7 +2201,7 @@ Bool ExpressionGenerator::_generateUseInOp(
     return false;
   }
 
-  if (session->getTgContext() == 0) {
+  if (session->isAstComputationOnly()) {
     // If we don't have a context, then we are just trying to deduce the output type which means we don't need to
     // generate the body.
     return true;
@@ -2236,7 +2241,7 @@ Bool ExpressionGenerator::_generateStringLiteral(
   TiObject *strPtrTgType;
   if (!g->getGeneratedType(strPtrAstType, session, strPtrTgType, 0)) return false;
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateStringLiteral(
       session->getTgContext(), value->getBuf(), charTgType, strTgType, result.targetData
     )) return false;
@@ -2259,7 +2264,7 @@ Bool ExpressionGenerator::_generateCharLiteral(
 
   auto bitCount = charAstType->getBitCount(expGenerator->astHelper);
 
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateIntLiteral(session->getTgContext(), bitCount, false, value, result.targetData)) {
       return false;
     }
@@ -2365,7 +2370,7 @@ Bool ExpressionGenerator::_generateIntegerLiteral(
   if (!retVal) return false;
 
   // Generate the literal.
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateIntLiteral(session->getTgContext(), size, signedNum, value, result.targetData)) {
       return false;
     }
@@ -2410,7 +2415,7 @@ Bool ExpressionGenerator::_generateFloatLiteral(
   if (!retVal) return false;
 
   // Generate the literal.
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateFloatLiteral(session->getTgContext(), size, value, result.targetData)) return false;
   }
   result.astType = floatAstType;
@@ -2433,13 +2438,14 @@ Bool ExpressionGenerator::_generateInnerFunction(
     return false;
   }
 
-  auto tgFunction = session->getEda()->getCodeGenData<TiObject>(astFunction);
+  TiObject *tgFunction = 0;
+  if (!session->isAstComputationOnly()) tgFunction = session->getEda()->getCodeGenData<TiObject>(astFunction);
   auto astFunctionPointerType = expGenerator->astHelper->getPointerTypeFor(astFunction->getType().get());
   TiObject *tgFunctionPointerType;
   if (!g->getGeneratedType(astFunctionPointerType, session, tgFunctionPointerType, 0)) {
     throw EXCEPTION(GenericException, S("Failed to generate function pointer type."));
   }
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateFunctionPointer(
       session->getTgContext(), tgFunction, tgFunctionPointerType, result.targetData
     )) return false;
@@ -2518,7 +2524,7 @@ Bool ExpressionGenerator::_generateVarReference(
   PREPARE_SELF(expGenerator, ExpressionGenerator);
 
   TiObject *tgVar = 0;
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     // We only need the var generated if we have a context.
     auto varDef = ti_cast<Core::Ast::Definition>(static_cast<Core::Ast::Node*>(varAstNode)->getOwner());
     if (varDef == 0) {
@@ -2557,7 +2563,7 @@ Bool ExpressionGenerator::_generateVarReference(
     result.targetData = getSharedPtr(tgVar);
     result.astType = astType;
   } else {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateVarReference(session->getTgContext(), tgType, tgVar, result.targetData)) return false;
     }
     result.astType = expGenerator->astHelper->getReferenceTypeFor(astType, Ast::ReferenceMode::IMPLICIT);
@@ -2583,6 +2589,17 @@ Bool ExpressionGenerator::_generateMemberVarReference(
     return false;
   }
 
+  // AST computation only sessions don't need the struct body to be generated, so we trace the member type from the
+  // AST instead of relying on the data stored during the generation of the struct body.
+  if (session->isAstComputationOnly()) {
+    auto astMemberType = expGenerator->astHelper->traceType(astMemberVar);
+    if (astMemberType == 0) return false;
+    TiObject *tgMemberType;
+    if (!g->getGeneratedType(astMemberType, session, tgMemberType, 0)) return false;
+    result.astType = expGenerator->astHelper->getReferenceTypeFor(astMemberType, Ast::ReferenceMode::IMPLICIT);
+    return true;
+  }
+
   // Get the member generated value and type.
   auto tgMemberVar = session->getEda()->tryGetCodeGenData<TiObject>(astMemberVar);
   if (tgMemberVar == 0) {
@@ -2598,7 +2615,7 @@ Bool ExpressionGenerator::_generateMemberVarReference(
   if (!g->getGeneratedType(astMemberType, session, tgMemberType, 0)) return false;
 
   // Generate member access.
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateMemberVarReference(
       session->getTgContext(), tgStructType, tgMemberType, tgMemberVar, tgStructValue, result.targetData
     )) {
@@ -2618,7 +2635,7 @@ Bool ExpressionGenerator::_generateArrayReference(
 
   // Cast the index to int64.
   GenResult castedIndex;
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!g->generateCast(
       session, astIndexType, expGenerator->astHelper->getArchIntType(), astNode, tgIndexVal, false, castedIndex
     )) {
@@ -2654,7 +2671,7 @@ Bool ExpressionGenerator::_generateArrayReference(
   if (!g->getGeneratedType(astElementType, session, tgElementType, 0)) return false;
 
   // Generate member access.
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     if (!session->getTg()->generateArrayElementReference(
       session->getTgContext(), tgArrayType, tgElementType, castedIndex.targetData.get(), target.targetData.get(),
       result.targetData
@@ -2686,12 +2703,13 @@ Bool ExpressionGenerator::_generateFunctionCall(
       );
       return false;
     }
-    auto tgFunction = session->getEda()->getCodeGenData<TiObject>(callee);
+    TiObject *tgFunction = 0;
+    if (!session->isAstComputationOnly()) tgFunction = session->getEda()->getCodeGenData<TiObject>(callee);
 
     // Create function call.
     auto astRetType = callee->getType()->traceRetType(expGenerator->astHelper);
     if (astRetType->getInitializationMethod(expGenerator->astHelper) != Ast::TypeInitMethod::NONE) {
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         // Pass a reference to the return value.
         TioSharedPtr tgTempVar;
         if (!g->generateTempVar(astNode, astRetType, session, false, tgTempVar)) return false;
@@ -2716,7 +2734,7 @@ Bool ExpressionGenerator::_generateFunctionCall(
       }
       result.astType = expGenerator->astHelper->getReferenceTypeFor(astRetType, Ast::ReferenceMode::IMPLICIT);
     } else {
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         if (!session->getTg()->generateFunctionCall(
           session->getTgContext(), tgFunction, paramTgValues, result.targetData
         )) return false;
@@ -2737,7 +2755,7 @@ Bool ExpressionGenerator::_generateFunctionPtrCall(
 
   auto astRetType = astFuncType->traceRetType(expGenerator->astHelper);
   if (astRetType->getInitializationMethod(expGenerator->astHelper) != Ast::TypeInitMethod::NONE) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       // Pass a reference to the return value.
       TioSharedPtr tgTempVar;
       if (!g->generateTempVar(astNode, astRetType, session, false, tgTempVar)) return false;
@@ -2762,7 +2780,7 @@ Bool ExpressionGenerator::_generateFunctionPtrCall(
     }
     result.astType = expGenerator->astHelper->getReferenceTypeFor(astRetType, Ast::ReferenceMode::IMPLICIT);
   } else {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateFunctionPtrCall(
         session->getTgContext(), tgFuncPtr, tgFuncPtrType, paramTgValues, result.targetData
       )) return false;
@@ -2790,7 +2808,7 @@ Bool ExpressionGenerator::_prepareFunctionParams(
     // Cast the value if needed.
     if (context.type != 0) {
       GenResult castedVal;
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         if (!g->generateCast(
           session, srcType, context.type, paramAstNodes->getElement(i),
           paramTgVals->getElement(i), false, castedVal
@@ -3090,7 +3108,7 @@ Bool ExpressionGenerator::_referencifyThisIfNeeded(
   PREPARE_SELF(expGenerator, ExpressionGenerator);
 
   if (thisArg.astType != 0 && ti_cast<Ast::ReferenceType>(thisArg.astType) == 0) {
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       // Member functions need a reference so we'll create a temp var.
       // This code path should not be reached with custom-initialization variables, so we don't need to
       // register the destructor here.
@@ -3147,7 +3165,7 @@ Bool ExpressionGenerator::_generateParams(
     TiObject *intTgType;
     if (!g->getGeneratedType(intAstType, session, intTgType, 0)) return false;
     TioSharedPtr tgCount;
-    if (session->getTgContext() != 0) {
+    if (!session->isAstComputationOnly()) {
       if (!session->getTg()->generateIntLiteral(session->getTgContext(), 32, true, subTgValues.getCount(), tgCount)) {
         return false;
       }
@@ -3207,7 +3225,7 @@ Bool ExpressionGenerator::dereferenceIfNeeded(
       cntRefAstType != 0 && cntRefAstType->isAutoDeref() && (!implicitOnly || cntRefAstType->isImplicit());
     if (innerRefAvailable || valueNeeded) {
       TioSharedPtr derefTgValue;
-      if (session->getTgContext() != 0) {
+      if (!session->isAstComputationOnly()) {
         auto tgContentType = session->getEda()->getCodeGenData<TiObject>(cntAstType);
         if (!session->getTg()->generateDereference(session->getTgContext(), tgContentType, tgValue, derefTgValue)) {
           return false;
@@ -3233,7 +3251,7 @@ Bool ExpressionGenerator::castLogicalOperand(
     );
     return false;
   }
-  if (session->getTgContext() != 0) {
+  if (!session->isAstComputationOnly()) {
     GenResult castResult;
     if (!g->generateCast(session, astType, boolType, astNode, tgValue, true, castResult)) {
       this->astHelper->getNoticeStore()->add(
@@ -3253,6 +3271,9 @@ Bool ExpressionGenerator::castLogicalOperand(
 }
 
 Bool ExpressionGenerator::addFunctionDependencyIfNeeded(Session *session, Spp::Ast::Function *func) {
+  // AST computation only sessions never generate function bodies, so there is nothing to depend on.
+  if (session->isAstComputationOnly()) return true;
+
   auto body = func->getBody().get();
 
   // If the function has no body (i.e. it's external or intrinsic), we don't need to add it as a dependency.

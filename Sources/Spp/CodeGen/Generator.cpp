@@ -266,6 +266,8 @@ Bool Generator::_generateFunctionDecl(TiObject *self, Spp::Ast::Function *astFun
 {
   PREPARE_SELF(generator, Generator);
 
+  if (session->isAstComputationOnly()) return true;
+
   auto tgFunc = session->getEda()->tryGetCodeGenData<TiObject>(astFunc);
   if (tgFunc != 0) return true;
 
